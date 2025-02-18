@@ -1,0 +1,5 @@
+original_image = load_image_grayscale("../../lena.png")
+    watermark = load_watermark("../../mark.png")
+
+    
+    input_image = "../../lena.png"  # Path to the original image
