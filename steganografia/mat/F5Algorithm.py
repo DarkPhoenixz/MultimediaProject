@@ -116,8 +116,8 @@ def display_results(original, watermarked, extracted_watermark, original_waterma
 #         MAIN
 # =======================
 def main():
-    original_image = load_image_grayscale("../../lena.png")  # Cambia con la tua immagine
-    watermark = load_image_grayscale("../../mark.png")  # Cambia con il tuo watermark
+    original_image = load_image_grayscale("lena.jpg")  # Cambia con la tua immagine
+    watermark = load_image_grayscale("mark.jpg")  # Cambia con il tuo watermark
 
     watermarked_image, modified_dct, indices, watermark_shape = embed_watermark(original_image, watermark, alpha=0.1)
 

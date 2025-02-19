@@ -116,7 +116,7 @@ def display_images(original_path, stego_path):
 # Test code
 if __name__ == "__main__":
         
-    input_image = "../../lena.png"  # Path to the original image
+    input_image = "lena.jpg"  # Path to the original image
     output_image = "output.jpg"  # Path to save the steganographic image
     secret_message = "This is a hidden message!"  # Secret message to embed
     
