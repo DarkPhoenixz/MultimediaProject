@@ -53,6 +53,7 @@ def extract_bits_from_quant_coeff(coef, num_bits=2):
 
 ###############################################################################
 # 4) Funzione di embedding in dominio DCT
+#    Solo il coefficiente target (3,3) viene quantizzato e modificato.
 ###############################################################################
 def embed_secret_dct(cover_path, secret_path, stego_path, block_size=8, 
                      quant_matrix=JPEG_QUANT_MATRIX, target_coeff=(3,3), bits_per_block=2):
@@ -61,6 +62,8 @@ def embed_secret_dct(cover_path, secret_path, stego_path, block_size=8,
     - Immagine segreta: viene ridimensionata a 32x32 (1024 pixel → 8192 bit).
     - Dividiamo il cover in blocchi 8x8 (4096 blocchi) e embeddiamo in ogni blocco 'bits_per_block' bit,
       inserendoli nel coefficiente quantizzato in posizione target (ad es. (3,3)).
+    - Al contrario dell'approccio JPEG-like, qui quantizziamo solo il coefficiente target,
+      preservando il resto del blocco e riducendo distorsioni.
     """
     # Carica cover in scala di grigi
     cover_img = Image.open(cover_path).convert('L')
@@ -69,7 +72,7 @@ def embed_secret_dct(cover_path, secret_path, stego_path, block_size=8,
 
     num_blocks_vert = H // block_size
     num_blocks_horiz = W // block_size
-    total_blocks = num_blocks_vert * num_blocks_horiz  # 4096 blocchi
+    total_blocks = num_blocks_vert * num_blocks_horiz  # 4096 blocchi (512x512 / 8x8)
 
     # Prepara l'immagine segreta: ridimensiona a 32x32
     secret_img = Image.open(secret_path).convert('L')
@@ -78,12 +81,13 @@ def embed_secret_dct(cover_path, secret_path, stego_path, block_size=8,
     # Converti l'immagine segreta in una stringa di bit (8 bit per pixel → 1024*8 = 8192 bit)
     secret_bits = ''.join(format(p, '08b') for p in secret_np.flatten())
     if len(secret_bits) != total_blocks * bits_per_block:
-        raise ValueError(f"La lunghezza della bitstream segreta ({len(secret_bits)} bit) non corrisponde alla capacità ({total_blocks * bits_per_block} bit).")
+        raise ValueError(f"La lunghezza della bitstream segreta ({len(secret_bits)} bit) "
+                         f"non corrisponde alla capacità ({total_blocks * bits_per_block} bit).")
 
     bit_index = 0
     stego_np = np.zeros_like(cover_np)
 
-    # Per ogni blocco
+    # Per ogni blocco 8x8
     for i in range(num_blocks_vert):
         for j in range(num_blocks_horiz):
             r = i * block_size
@@ -92,19 +96,27 @@ def embed_secret_dct(cover_path, secret_path, stego_path, block_size=8,
 
             # 1) DCT del blocco
             dct_block = dct2(block)
-            # 2) Quantizzazione: dividi per la matrice e arrotonda
-            quant_block = np.round(dct_block / quant_matrix).astype(np.int32)
+
+            # 2) SOLO quantizzazione del coefficiente target
+            rr, cc = target_coeff
+            orig_coef_val = dct_block[rr, cc]
+
+            # Dividiamo per la matrice e arrotondiamo, ma SOLO per il coeff. target
+            q_val = orig_coef_val / quant_matrix[rr, cc]
+            q_val_rounded = int(round(q_val))
+
             # 3) Embedding: prendi i 'bits_per_block' bit dalla secret_bits
             bits_to_embed = secret_bits[bit_index:bit_index + bits_per_block]
             bit_index += bits_per_block
-            rr, cc = target_coeff
-            coef = quant_block[rr, cc]
-            new_coef = embed_bits_in_quant_coeff(coef, bits_to_embed, num_bits=bits_per_block)
-            quant_block[rr, cc] = new_coef
-            # 4) Dequantizzazione
-            new_dct_block = quant_block * quant_matrix
+
+            # Embed dei bit nei LSB del coeff. quantizzato
+            new_q_val = embed_bits_in_quant_coeff(q_val_rounded, bits_to_embed, num_bits=bits_per_block)
+
+            # 4) Dequantizzazione SOLO del coeff. target
+            dct_block[rr, cc] = new_q_val * quant_matrix[rr, cc]
+
             # 5) IDCT per ricostruire il blocco
-            stego_block = idct2(new_dct_block)
+            stego_block = idct2(dct_block)
             stego_np[r:r+block_size, c:c+block_size] = stego_block
 
     # Clip e conversione in 8-bit
@@ -116,9 +128,10 @@ def embed_secret_dct(cover_path, secret_path, stego_path, block_size=8,
 
 ###############################################################################
 # 5) Funzione di estrazione in dominio DCT
+#    Ancora, quantizziamo solo il coefficiente target (3,3).
 ###############################################################################
 def extract_secret_dct(stego_path, block_size=8, quant_matrix=JPEG_QUANT_MATRIX, 
-                        target_coeff=(3,3), bits_per_block=2, secret_size=(32,32)):
+                       target_coeff=(3,3), bits_per_block=2, secret_size=(32,32)):
     """
     Estrae i bit da ogni blocco (dalla stessa posizione target) e ricostruisce l'immagine segreta.
     secret_size è (altezza, larghezza) in pixel; in questo esempio 32x32 (1024 pixel → 8192 bit).
@@ -136,12 +149,17 @@ def extract_secret_dct(stego_path, block_size=8, quant_matrix=JPEG_QUANT_MATRIX,
             r = i * block_size
             c = j * block_size
             block = stego_np[r:r+block_size, c:c+block_size]
+
             # DCT
             dct_block = dct2(block)
-            quant_block = np.round(dct_block / quant_matrix).astype(np.int32)
+
+            # Quantizziamo SOLO il coeff. target
             rr, cc = target_coeff
-            coef = quant_block[rr, cc]
-            bits = extract_bits_from_quant_coeff(coef, num_bits=bits_per_block)
+            coef_val = dct_block[rr, cc]
+            q_val = int(round(coef_val / quant_matrix[rr, cc]))
+
+            # Estrazione dei bit
+            bits = extract_bits_from_quant_coeff(q_val, num_bits=bits_per_block)
             extracted_bits += bits
 
     # Dovrebbero essere esattamente secret_size[0]*secret_size[1]*8 bit
@@ -178,13 +196,13 @@ if __name__ == "__main__":
     # Embedding con 2 bit per blocco → capacity: 4096 blocchi * 2 bit = 8192 bit (1024 pixel)
     cover_np, secret_32x32_np, stego_np = embed_secret_dct(
         cover_image_path, secret_image_path, stego_image_path,
-        block_size=8, quant_matrix=JPEG_QUANT_MATRIX, target_coeff=(3,3), bits_per_block=2
+        block_size=8, quant_matrix=JPEG_QUANT_MATRIX, target_coeff=(1,1), bits_per_block=2
     )
 
     # Estrazione
     extracted_secret_np, extracted_secret_img = extract_secret_dct(
         stego_image_path, block_size=8, quant_matrix=JPEG_QUANT_MATRIX,
-        target_coeff=(3,3), bits_per_block=2, secret_size=(32,32)
+        target_coeff=(1,1), bits_per_block=2, secret_size=(32,32)
     )
 
     # Calcola MSE/PSNR per cover vs. stego e per secret vs. estratto
@@ -196,11 +214,11 @@ if __name__ == "__main__":
     # Visualizzazione dei risultati
     fig, axes = plt.subplots(2, 2, figsize=(12,10))
 
-    axes[0,0].imshow(cover_np, cmap='gray')
+    axes[0,0].imshow(cover_np, cmap='gray', vmin=0, vmax=255)
     axes[0,0].set_title("Cover Image (512x512)")
     axes[0,0].axis('off')
 
-    axes[0,1].imshow(stego_np, cmap='gray')
+    axes[0,1].imshow(stego_np, cmap='gray', vmin=0, vmax=255)
     axes[0,1].set_title("Stego Image (DCT embedding)")
     axes[0,1].axis('off')
 
