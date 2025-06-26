@@ -4,16 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-if len(sys.argv) != 3:
-    print("Uso: python DCT-full.py original_image secret_image")
-    sys.exit(1)
 
-cover_image_path = sys.argv[1]
-secret_image_path = sys.argv[2]
-
-print("Ricevuto:")
-print(" - image:", cover_image_path)
-print(" - timageext :", secret_image_path)
 
 def load_image_grayscale(image_path):
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
@@ -144,7 +135,7 @@ def display_results(original, watermarked, original_dft, watermarked_dft,
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
 
-def main():
+def main(cover_image_path, secret_image_path):
     # Load main image and watermark
     lena_image = load_image_grayscale(cover_image_path)
     logo_image = load_image_grayscale(secret_image_path)
@@ -190,7 +181,17 @@ def main():
     cv2.imwrite("watermarked_lena.png", watermarked_image)
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 3:
+        print("Uso: python DFT.py original_image secret_image")
+        sys.exit(1)
+
+    cover_image_path = sys.argv[1]
+    secret_image_path = sys.argv[2]
+
+    print("Ricevuto:")
+    print(" - image:", cover_image_path)
+    print(" - timageext :", secret_image_path)
+    main(cover_image_path, secret_image_path)
 
 #non ci sono osservazione al momento
 #funziona

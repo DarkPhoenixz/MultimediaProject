@@ -6,16 +6,8 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from scipy.fftpack import dct, idct
 
-if len(sys.argv) != 3:
-    print("Uso: python DCT-text.py image_path text_to_hide")
-    sys.exit(1)
 
-cover_image_path = sys.argv[1]
-secret_text = sys.argv[2]
 
-print("Ricevuto:")
-print(" - image:", cover_image_path)
-print(" - text :", secret_text)
 ########################################################
 # JPEG Quantization Matrix (for luminance, quality ~50)
 ########################################################
@@ -189,92 +181,60 @@ def compute_psnr(mse, max_pixel=255.0):
         return float('inf')
     return 10 * np.log10((max_pixel**2) / mse)
 
-if __name__ == "__main__":
+def main(cover_image_path, secret_text):
     stego_image_path = 'stego_dct_string.png'
-
     if not cover_image_path:
         print("Nessuna immagine selezionata. Uscita dal programma.")
         exit()
-
-    cover_image = Image.open(cover_image_path).convert("L")  # Scala di grigi
+    cover_image = Image.open(cover_image_path).convert("L")
     if cover_image.size != (512, 512):
         print(f"Ridimensionamento immagine cover da {cover_image.size} a 512x512")
         cover_image = cover_image.resize((512, 512))
-    
     cover_np = np.array(cover_image)
-
     if not secret_text:
-        print("Nessuna immagine selezionata. Uscita dal programma.")
+        print("Nessun testo selezionato. Uscita dal programma.")
         exit()
-
-    secret_message = secret_text  
-
-    # Embedding with fewer bits (1 bit/block) in a higher-frequency coefficient (7,7).
-    # Capacity = 4096 blocks * 1 bit = 4096 bits = 512 bytes
+    secret_message = secret_text
     cover_np, stego_np = embed_secret_dct_string(
         cover_np, 
         secret_message,
         block_size=8, 
         quant_matrix=Q90, 
-        target_coeff=(7,7),  # High frequency
+        target_coeff=(7,7),
         bits_per_block=1
     )
-
-    # Save
     stego_img = Image.fromarray(stego_np, mode='L')
     stego_img.save(stego_image_path)
     print(f"Stego image saved at: {stego_image_path}")
-
-    # Extraction
     extracted_message = extract_secret_dct_string(
         stego_image_path, 
         block_size=8, 
         quant_matrix=Q90,
-        target_coeff=(7,7),  # Must match embedding
+        target_coeff=(7,7),
         bits_per_block=1
     )
-
-    # Calculate embedding computational time
     embedTime = timeit.timeit(
         "embed_secret_dct_string(cover_np, secret_message, block_size=8, quant_matrix=Q90, target_coeff=(7,7), bits_per_block=1)",
         globals=globals(),
         number=10
     )
-
-    # Calculate extraction computational time
     extractTime = timeit.timeit(
         "extract_secret_dct_string(stego_image_path, block_size=8, quant_matrix=Q90, target_coeff=(7,7), bits_per_block=1)",
         globals=globals(),
         number=10
     )
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Uso: python DCT_text.py image_path text_to_hide")
+        sys.exit(1)
+    cover_image_path = sys.argv[1]
+    secret_text = sys.argv[2]
+    print("Ricevuto:")
+    print(" - image:", cover_image_path)
+    print(" - text :", secret_text)
+    main(cover_image_path, secret_text)
     
-    # Compute MSE/PSNR for cover vs. stego (for visual quality assessment)
-    mse_cover = compute_mse(cover_np, stego_np)
-    psnr_cover = compute_psnr(mse_cover)
-    print(f"Cover vs Stego: MSE = {mse_cover:.2f}, PSNR = {psnr_cover:.2f} dB")
-    
-    print("Extracted secret message:")
-    print(extracted_message)
-    
-    # Display the cover and stego images along with the MSE and PSNR in the title.
-    fig, axes = plt.subplots(1, 2, figsize=(12,6))
-    axes[0].imshow(cover_np, cmap='gray')
-    axes[0].set_title("Cover Image (PNG)")
-    axes[0].axis('off')
-
-    axes[1].imshow(stego_np, cmap='gray')
-    axes[1].set_title("Stego Image (PNG)")
-    axes[1].axis('off')
-
-    fig.suptitle(
-        f"Cover vs Stego: MSE = {mse_cover:.2f}, PSNR = {psnr_cover:.2f} dB\n"
-        f"Embedding Time: {embedTime:.2f} s, Extraction Time: {extractTime:.2f} s",
-        fontsize=14
-        )
-    plt.tight_layout()
-    plt.show()
-
-
 #non va bene con immagini conpattern o aree molto piatte poiche dct modifica inmaniera aggressiva
 #possibili cose da fare dithering
 #controllare frequenza di embed

@@ -6,17 +6,6 @@ import scipy.fftpack as fftpack
 import matplotlib.pyplot as plt
 import sys
 
-if len(sys.argv) != 3:
-    print("Uso: python DCT-full.py original_image secret_image")
-    sys.exit(1)
-
-cover_image_path = sys.argv[1]
-secret_image_path = sys.argv[2]
-
-print("Ricevuto:")
-print(" - image:", cover_image_path)
-print(" - timageext :", secret_image_path)
-
 def embed_watermark_dct(cover_image_path, watermark_image_path, stego_image_path, alpha=10):
     # Carica l'immagine di copertura e il watermark (ridimensionato a 128x128)
     cover_img = Image.open(cover_image_path).convert('L')
@@ -77,74 +66,61 @@ def compute_psnr(mse, max_pixel=255.0):
     psnr = 10 * np.log10((max_pixel ** 2) / mse)
     return psnr
 
-# --- Main Execution ---
-if __name__ == "__main__":
-    
+def main(cover_image_path, secret_image_path):
     stego_image_path = 'stego_dct.png'
-    
-    alpha = 7  # forza dell'incorporamento del watermark
-    
-    # Incorpora il watermark nell'immagine di copertura tramite DCT
+    alpha = 7
     cover_np, watermark_np, stego_np = embed_watermark_dct(cover_image_path, secret_image_path, stego_image_path, alpha=alpha)
-    
-    # Estrai il watermark dall'immagine stego
     extracted_watermark = extract_watermark_dct(stego_image_path, cover_image_path, alpha=alpha)
-    
-    # Calculate embedding computational time
     embedTime = timeit.timeit(
         "embed_watermark_dct(cover_image_path, secret_image_path, stego_image_path, alpha=alpha)",
         globals=globals(),
         number=10
     )
-
-    # Calculate extraction computational time
     extractTime = timeit.timeit(
         "extract_watermark_dct(stego_image_path, cover_image_path, alpha=alpha)",
         globals=globals(),
         number=10
     )
-
-    # Calcola MSE e PSNR per Cover vs Watermark (imperceptibilità)
     mse_cover = compute_mse(cover_np, stego_np)
     psnr_cover = compute_psnr(mse_cover)
     print(f"Cover vs. Watermark: MSE = {mse_cover:.2f}, PSNR = {psnr_cover:.2f} dB")
-    
-    # Calcola MSE e PSNR per Watermark originale vs. Watermark estratto
-    # Convertiamo watermark_np a uint8 per il confronto
     mse_watermark = compute_mse(watermark_np.astype(np.uint8), extracted_watermark)
     psnr_watermark = compute_psnr(mse_watermark)
     print(f"Watermark vs. Extracted: MSE = {mse_watermark:.2f}, PSNR = {psnr_watermark:.2f} dB")
-    
-    # Visualizza i risultati
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-    
     axes[0,0].imshow(cover_np, cmap='gray')
     axes[0,0].set_title("Cover Image")
     axes[0,0].axis("off")
-    
     axes[0,1].imshow(stego_np, cmap='gray')
     axes[0,1].set_title("Watermark Image")
     axes[0,1].axis("off")
-    
     axes[1,0].imshow(watermark_np.astype(np.uint8), cmap='gray')
     axes[1,0].set_title("Original Watermark")
     axes[1,0].axis("off")
-    
     axes[1,1].imshow(extracted_watermark, cmap='gray')
     axes[1,1].set_title("Extracted Watermark")
     axes[1,1].axis("off")
-    
     fig.suptitle(
         f"Cover vs. Watermark MSE: {mse_cover:.2f}, PSNR: {psnr_cover:.2f} dB\n"
         f"Watermark vs. Extracted MSE: {mse_watermark:.2f}, PSNR: {psnr_watermark:.2f} dB\n"
         f"Embedding Time: {embedTime:.2f} s, Extraction Time: {extractTime:.2f} s",
         fontsize=14
     )
-    
     plt.tight_layout()
     plt.show()
 
-    #piu robusto alle compressioni 
-    #i wm con linee nette sono complessi da incorporare, volendo si potrebbe sfocare
-    #honorable mention: lena con dentro lena
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Uso: python DCT_lowFreq.py original_image secret_image")
+        sys.exit(1)
+    cover_image_path = sys.argv[1]
+    secret_image_path = sys.argv[2]
+    print("Ricevuto:")
+    print(" - image:", cover_image_path)
+    print(" - timageext :", secret_image_path)
+    main(cover_image_path, secret_image_path)
+
+#piu robusto alle compressioni 
+#i wm con linee nette sono complessi da incorporare, volendo si potrebbe sfocare
+#honorable mention: lena con dentro lena
     

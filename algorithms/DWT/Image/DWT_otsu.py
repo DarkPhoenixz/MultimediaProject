@@ -7,16 +7,7 @@ import matplotlib.pyplot as plt
 import cv2
 import sys
 
-if len(sys.argv) != 3:
-    print("Uso: python DCT-full.py original_image secret_image")
-    sys.exit(1)
 
-cover_image_path = sys.argv[1]
-secret_image_path = sys.argv[2]
-
-print("Ricevuto:")
-print(" - image:", cover_image_path)
-print(" - timageext :", secret_image_path)
 
 # For Otsu threshold & morphological operations
 from skimage.filters import threshold_otsu
@@ -192,18 +183,11 @@ def morphological_cleanup(bin_img, radius_open=1, radius_close=1):
     cleaned = closing(opened, disk(radius_close))
     return (cleaned.astype(np.uint8)) * 255
 
-if __name__ == "__main__":
-    
+def main(cover_image_path, secret_image_path):
     stego_image_path = "stego_singlelevel_bior2.2.png"
-    
-    # Use fewer bits, a smoother wavelet, single-level DWT
     bits_used = 2
     wavelet = "bior2.2"
     decomposition_level = 3
-    
-    # -------------------------------------------------------------------------
-    # 1) EMBED
-    # -------------------------------------------------------------------------
     cover_np, secret_np, secret_quant, stego_np, secret_shape = embed_secret_image_dwt_distributed(
         cover_image_path,
         secret_image_path,
@@ -212,10 +196,6 @@ if __name__ == "__main__":
         wavelet=wavelet,
         level=decomposition_level
     )
-    
-    # -------------------------------------------------------------------------
-    # 2) EXTRACT
-    # -------------------------------------------------------------------------
     secret_extracted = extract_secret_image_dwt_distributed(
         stego_image_path,
         bits_used=bits_used,
@@ -223,30 +203,18 @@ if __name__ == "__main__":
         level=decomposition_level,
         secret_shape=secret_shape
     )
-    
-    # -------------------------------------------------------------------------
-    # 3) APPLY OTSU THRESHOLD + (OPTIONAL) MORPHOLOGY
-    # -------------------------------------------------------------------------
     secret_extracted_otsu = apply_otsu_threshold(secret_extracted)
     secret_extracted_clean = morphological_cleanup(secret_extracted_otsu)
-    
-    # Calculate embedding computational time
     embedTime = timeit.timeit(
         "embed_secret_image_dwt_distributed(cover_image_path,secret_image_path,stego_image_path,bits_used=bits_used,wavelet=wavelet,level=decomposition_level)",
         globals=globals(),
         number=10
     )
-
-    # Calculate extraction computational time
     extractTime = timeit.timeit(
         "extract_secret_image_dwt_distributed(stego_image_path,bits_used=bits_used,wavelet=wavelet,level=decomposition_level,secret_shape=secret_shape)",
         globals=globals(),
         number=10
     )
-
-    # -------------------------------------------------------------------------
-    # 4) EVALUATE QUALITY
-    # -------------------------------------------------------------------------
     mse_cover = compute_mse(cover_np, stego_np)
     psnr_cover = compute_psnr(mse_cover)
     
@@ -295,5 +263,18 @@ if __name__ == "__main__":
     
     plt.tight_layout()
     plt.show()
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Uso: python DWT_otsu.py original_image secret_image")
+        sys.exit(1)
+
+    cover_image_path = sys.argv[1]
+    secret_image_path = sys.argv[2]
+
+    print("Ricevuto:")
+    print(" - image:", cover_image_path)
+    print(" - timageext :", secret_image_path)
+    main(cover_image_path, secret_image_path)
 
 #multilevel + otsu nulla di che :)

@@ -7,17 +7,6 @@ from scipy.fftpack import dct, idct
 import sys
 import math
 
-if len(sys.argv) != 3:
-    print("Uso: python DCT-full.py original_image secret_image")
-    sys.exit(1)
-
-cover_image_path = sys.argv[1]
-secret_image_path = sys.argv[2]
-
-print("Ricevuto:")
-print(" - image:", cover_image_path)
-print(" - timageext :", secret_image_path)
-
 ###############################################################################
 # 1) Matrice di quantizzazione JPEG (per la luminanza, qualità ~50)
 ###############################################################################
@@ -205,61 +194,43 @@ def compute_psnr(mse, max_pixel=255.0):
 ###############################################################################
 # 7) Esempio di utilizzo
 ###############################################################################
-if __name__ == "__main__":
-   
+def main(cover_image_path, secret_image_path):
     stego_image_path = 'stego_dct.png'
-
-    # Embedding con 2 bit per blocco → capacity: 4096 blocchi * 2 bit = 8192 bit (1024 pixel)
     cover_np, secret_np, stego_np, size = embed_secret_dct(
         cover_image_path, secret_image_path, stego_image_path,
         block_size=8, quant_matrix=Q90, target_coeff=(4,4), bits_per_block=2
     )
-
-    # Estrazione
     extracted_secret_np, extracted_secret_img = extract_secret_dct(
         stego_image_path, block_size=8, quant_matrix=Q90,
         target_coeff=(4,4), bits_per_block=2, secret_size=size
     )
-
-    # Calculate embedding computational time
     embedTime = timeit.timeit(
         "embed_secret_dct(cover_image_path, secret_image_path, stego_image_path,block_size=8, quant_matrix=Q90, target_coeff=(4,4), bits_per_block=2)",
         globals=globals(),
         number=10
     )
-
-    # Calculate extraction computational time
     extractTime = timeit.timeit(
         "extract_secret_dct(stego_image_path, block_size=8, quant_matrix=Q90,target_coeff=(4,4), bits_per_block=2, secret_size=(32,32))",
         globals=globals(),
         number=10
     )
-
-    # Calcola MSE/PSNR per cover vs. stego e per secret vs. estratto
     mse_cover = compute_mse(cover_np, stego_np)
     psnr_cover = compute_psnr(mse_cover)
     mse_secret = compute_mse(secret_np, extracted_secret_np)
     psnr_secret = compute_psnr(mse_secret)
-
-    # Visualizzazione dei risultati
     fig, axes = plt.subplots(2, 2, figsize=(12,10))
-
     axes[0,0].imshow(cover_np, cmap='gray')
     axes[0,0].set_title("Cover Image (512x512)")
     axes[0,0].axis('off')
-
     axes[0,1].imshow(stego_np, cmap='gray')
     axes[0,1].set_title("Stego Image (DCT embedding)")
     axes[0,1].axis('off')
-
     axes[1,0].imshow(secret_np, cmap='gray')
     axes[1,0].set_title("Original Secret Image (32x32)")
     axes[1,0].axis('off')
-
     axes[1,1].imshow(extracted_secret_np, cmap='gray')
     axes[1,1].set_title("Extracted Secret Image")
     axes[1,1].axis('off')
-
     fig.suptitle(
         f"Cover vs Stego: MSE = {mse_cover:.2f}, PSNR = {psnr_cover:.2f} dB\n" +
         f"Secret vs Extracted: MSE = {mse_secret:.2f}, PSNR = {psnr_secret:.2f} dB\n"
@@ -269,5 +240,15 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.show()
 
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Uso: python DCT_JPEG_like.py original_image secret_image")
+        sys.exit(1)
+    cover_image_path = sys.argv[1]
+    secret_image_path = sys.argv[2]
+    print("Ricevuto:")
+    print(" - image:", cover_image_path)
+    print(" - timageext :", secret_image_path)
+    main(cover_image_path, secret_image_path)
 
 #funziona bene con le potenze del 2

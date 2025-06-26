@@ -6,16 +6,6 @@ import matplotlib.pyplot as plt
 from scipy.fftpack import dct, idct
 import sys
 
-if len(sys.argv) != 3:
-    print("Uso: python DCT-full.py original_image secret_image")
-    sys.exit(1)
-
-cover_image_path = sys.argv[1]
-secret_image_path = sys.argv[2]
-
-print("Ricevuto:")
-print(" - image:", cover_image_path)
-print(" - timageext :", secret_image_path)
 
 ###############################################################################
 # Matrice di quantizzazione JPEG 
@@ -184,60 +174,44 @@ def compute_psnr(mse, max_pixel):
         return float('inf')
     return 10 * np.log10((max_pixel**2) / mse)
 
-if __name__ == "__main__":
+def main(cover_image_path, secret_image_path):
+    
     stego_image_path = 'stego_dct.png'
-
-    # Embedding con 2 bit per blocco → capacity: 4096 blocchi * 2 bit = 8192 bit (1024 pixel)
     cover_np, secret_32x32_np, stego_np = embed_secret_dct(
         cover_image_path, secret_image_path, stego_image_path,
         block_size=8, quant_matrix=JPEG_QUANT_MATRIX, target_coeff=(7,7), bits_per_block=1
     )
-
-    # Estrazione
     extracted_secret_np, extracted_secret_img = extract_secret_dct(
         stego_image_path, block_size=8, quant_matrix=JPEG_QUANT_MATRIX,
         target_coeff=(7,7), bits_per_block=1, secret_size=(16,16)
     )
-
-    # Calculate embedding computational time
     embedTime = timeit.timeit(
         "embed_secret_dct(cover_image_path, secret_image_path, stego_image_path,block_size=8, quant_matrix=JPEG_QUANT_MATRIX, target_coeff=(7,7), bits_per_block=1)",
         globals=globals(),
         number=10
     )
-
-    # Calculate extraction computational time
     extractTime = timeit.timeit(
         "extract_secret_dct(stego_image_path, block_size=8, quant_matrix=JPEG_QUANT_MATRIX,target_coeff=(7,7), bits_per_block=1, secret_size=(16,16))",
         globals=globals(),
         number=10
     )
-
-    # Calcola MSE/PSNR per cover vs. stego e per secret vs. estratto
     mse_cover = compute_mse(cover_np, stego_np)
     psnr_cover = compute_psnr(mse_cover, max_pixel=255)
     mse_secret = compute_mse(secret_32x32_np, extracted_secret_np)
     psnr_secret = compute_psnr(mse_secret, max_pixel=255)
-
-    # Visualizzazione dei risultati
     fig, axes = plt.subplots(2, 2, figsize=(12,10))
-
     axes[0,0].imshow(cover_np, cmap='gray', vmin=0, vmax=255)
     axes[0,0].set_title("Cover Image (512x512)")
     axes[0,0].axis('off')
-
     axes[0,1].imshow(stego_np, cmap='gray', vmin=0, vmax=255)
     axes[0,1].set_title("Stego Image (DCT embedding)")
     axes[0,1].axis('off')
-
     axes[1,0].imshow(secret_32x32_np, cmap='gray')
     axes[1,0].set_title("Original Secret Image (32x32)")
     axes[1,0].axis('off')
-
     axes[1,1].imshow(extracted_secret_np, cmap='gray')
     axes[1,1].set_title("Extracted Secret Image")
     axes[1,1].axis('off')
-
     fig.suptitle(
         f"Cover vs Stego: MSE = {mse_cover:.2f}, PSNR = {psnr_cover:.2f} dB\n" +
         f"Secret vs Extracted: MSE = {mse_secret:.2f}, PSNR = {psnr_secret:.2f} dB\n"
@@ -247,6 +221,19 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.show()
 
+if __name__ == "__main__":
+    
+    if len(sys.argv) != 3:
+        print("Uso: python DCT_singleQuant.py original_image secret_image")
+        sys.exit(1)
 
-    #capire cosa fare per bene
-    #guarda di nuovo il risultato
+    cover_image_path = sys.argv[1]
+    secret_image_path = sys.argv[2]
+
+    print("Ricevuto:")
+    print(" - image:", cover_image_path)
+    print(" - timageext :", secret_image_path)
+    main(cover_image_path, secret_image_path)
+
+#capire cosa fare per bene
+#guarda di nuovo il risultato

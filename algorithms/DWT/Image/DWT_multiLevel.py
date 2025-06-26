@@ -6,17 +6,6 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import sys
 
-if len(sys.argv) != 3:
-    print("Uso: python DCT-full.py original_image secret_image")
-    sys.exit(1)
-
-cover_image_path = sys.argv[1]
-secret_image_path = sys.argv[2]
-
-print("Ricevuto:")
-print(" - image:", cover_image_path)
-print(" - timageext :", secret_image_path)
-
 def quantize_to_n_bits(image_array, n):
     """
     Quantize an 8-bit grayscale image to n bits.
@@ -163,19 +152,11 @@ def compute_psnr(mse, max_val=255.0):
         return float('inf')
     return 10 * np.log10((max_val ** 2) / mse)
 
-# -------------------------
-# Example main script usage
-# -------------------------
-if __name__ == "__main__":
-   
+def main(cover_image_path, secret_image_path):
     stego_image_path = "stego_singlelevel_bior2.2.png"
-    
-    # Use fewer bits, a smoother wavelet, single-level DWT
     bits_used = 2
     wavelet = "bior2.2"
     decomposition_level = 2
-    
-    # Embed
     cover_np, secret_np, secret_quant, stego_np, secret_shape = embed_secret_image_dwt_distributed(
         cover_image_path,
         secret_image_path,
@@ -184,8 +165,6 @@ if __name__ == "__main__":
         wavelet=wavelet,
         level=decomposition_level
     )
-    
-    # Extract
     secret_extracted = extract_secret_image_dwt_distributed(
         stego_image_path,
         bits_used=bits_used,
@@ -193,58 +172,53 @@ if __name__ == "__main__":
         level=decomposition_level,
         secret_shape=secret_shape
     )
-    
-    # Calculate embedding computational time
     embedTime = timeit.timeit(
         "embed_secret_image_dwt_distributed(cover_image_path,secret_image_path,stego_image_path,bits_used=bits_used,wavelet=wavelet,level=decomposition_level)",
         globals=globals(),
         number=10
     )
-
-    # Calculate extraction computational time
     extractTime = timeit.timeit(
         "extract_secret_image_dwt_distributed(stego_image_path,bits_used=bits_used,wavelet=wavelet,level=decomposition_level,secret_shape=secret_shape)",
         globals=globals(),
         number=10
     )
-
-    # Evaluate quality
     mse_cover = compute_mse(cover_np, stego_np)
     psnr_cover = compute_psnr(mse_cover)
-    
     secret_dequant = dequantize_from_n_bits(secret_quant, bits_used)
     mse_secret = compute_mse(secret_dequant, secret_extracted)
     psnr_secret = compute_psnr(mse_secret)
-    
-    # Show results
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-    
     axes[0, 0].imshow(cover_np, cmap='gray')
     axes[0, 0].set_title("Cover Image")
     axes[0, 0].axis("off")
-    
     axes[0, 1].imshow(stego_np, cmap='gray')
     axes[0, 1].set_title("Stego Image (Single-Level, bior2.2)")
     axes[0, 1].axis("off")
-    
     axes[1, 0].imshow(secret_np, cmap='gray')
     axes[1, 0].set_title("Original Secret (resized if needed)")
     axes[1, 0].axis("off")
-    
     axes[1, 1].imshow(secret_extracted, cmap='gray')
     axes[1, 1].set_title("Extracted Secret")
     axes[1, 1].axis("off")
-    
     fig.suptitle(
         f"Cover vs. Stego: MSE={mse_cover:.2f}, PSNR={psnr_cover:.2f} dB\n"
         f"Secret vs. Extracted: MSE={mse_secret:.2f}, PSNR={psnr_secret:.2f} dB\n"
         f"Embedding Time: {embedTime:.2f} s, Extraction Time: {extractTime:.2f} s",
         fontsize=14
     )
-    
     plt.tight_layout()
     plt.show()
 
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Uso: python DWT_multiLevel.py original_image secret_image")
+        sys.exit(1)
+    cover_image_path = sys.argv[1]
+    secret_image_path = sys.argv[2]
+    print("Ricevuto:")
+    print(" - image:", cover_image_path)
+    print(" - timageext :", secret_image_path)
+    main(cover_image_path, secret_image_path)
 
 #combo migliori: 2/3 2/2
 #le bande sono dovute alla modifica dei coeff

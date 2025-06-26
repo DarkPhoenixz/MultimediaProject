@@ -4,16 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-if len(sys.argv) != 3:
-    print("Uso: python DCT-full.py original_image secret_image")
-    sys.exit(1)
 
-cover_image_path = sys.argv[1]
-secret_image_path = sys.argv[2]
-
-print("Ricevuto:")
-print(" - image:", cover_image_path)
-print(" - timageext :", secret_image_path)
 
 def generate_pseudo_random_sequence(seed, shape):
     """Genera una sequenza pseudo-casuale con distribuzione normale."""
@@ -126,7 +117,7 @@ def display_combined_results(original, watermark, watermarked, extracted_waterma
     plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
 
-def main():
+def main(cover_image_path, secret_image_path):
     
     # Incorpora il watermark
     original, watermark, watermarked = embed_watermark(cover_image_path, secret_image_path, alpha=1, seed=42)
@@ -151,7 +142,17 @@ def main():
     cv2.imwrite("extracted_watermark_dss.png", extracted_watermark)
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 3:
+        print("Uso: python DSSS.py original_image secret_image")
+        sys.exit(1)
+
+    cover_image_path = sys.argv[1]
+    secret_image_path = sys.argv[2]
+
+    print("Ricevuto:")
+    print(" - image:", cover_image_path)
+    print(" - timageext :", secret_image_path)
+    main(cover_image_path, secret_image_path)
 
 
 #il risultato è un po scadente questo a causa delle proprietà del dsss

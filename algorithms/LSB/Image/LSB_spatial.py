@@ -5,17 +5,6 @@ import timeit
 from PIL import Image
 import matplotlib.pyplot as plt
 
-if len(sys.argv) != 3:
-    print("Uso: python LSB-spatial.py image_path logo_path")
-    sys.exit(1)
-
-cover_image_path = sys.argv[1]
-secret_image_path = sys.argv[2]
-
-print("Ricevuto:")
-print(" - image:", cover_image_path)
-print(" - logo :", secret_image_path)
-
 def pad_to_shape(img_np, target_shape):
     padded = np.zeros(target_shape, dtype=img_np.dtype)
     h, w = img_np.shape
@@ -94,50 +83,37 @@ def compute_psnr(mse, max_pixel=255.0):
     psnr = 10 * np.log10((max_pixel ** 2) / mse)
     return psnr
 
-if __name__ == "__main__":
-
+def main(cover_image_path, secret_image_path):
+    print("Ricevuto:")
+    print(" - image:", cover_image_path)
+    print(" - logo :", secret_image_path)
     if not cover_image_path:
         print("Nessuna immagine selezionata. Uscita dal programma.")
         exit()
-
     cover_image = Image.open(cover_image_path).convert("L")
     cover_np = np.array(cover_image)
     h_cover, w_cover = cover_np.shape
-
     if not secret_image_path:
         print("Nessuna immagine selezionata. Uscita dal programma.")
         exit()
-
     secret_image = Image.open(secret_image_path).convert("L")
     secret_np = np.array(secret_image)
     h_secret, w_secret = secret_np.shape
-
     if h_secret > h_cover or w_secret > w_cover:
         print(f"Ridimensionamento secret image da {(w_secret, h_secret)} a {(w_cover, h_cover)}")
         secret_image = secret_image.resize((w_cover, h_cover))
         secret_np = np.array(secret_image)
-
     elif h_secret < h_cover or w_secret < w_cover:
         print(f"Padding secret image da {(w_secret, h_secret)} a {(w_cover, h_cover)}")
         secret_np = pad_to_shape(secret_np, (h_cover, w_cover))
-
-    # Percorsi hardcoded
     stego_image_path = 'stego.png'
-    
     bits_used = 2
-    # Embed
     cover_np, secret_np, secret_quant, stego_np = embed_secret_image(
         cover_np, secret_np, bits_used=bits_used)
-    
-    # Save stego image.
     stego_img = Image.fromarray(stego_np, mode='L')
     stego_img.save(stego_image_path)
     print(f"Stego image saved to {stego_image_path}")
-
-    # Extract
     secret_extracted = extract_secret_image(stego_np, bits_used=bits_used)
-
-    # Tempi
     embedTime = timeit.timeit(
         "embed_secret_image(cover_np, secret_np, bits_used=bits_used)",
         globals=globals(),
@@ -148,44 +124,40 @@ if __name__ == "__main__":
         globals=globals(),
         number=10
     )
-
-    # MSE e PSNR
     mse_cover = compute_mse(cover_np, stego_np)
     psnr_cover = compute_psnr(mse_cover)
-
     secret_dequant = dequantize_from_n_bits(secret_quant, bits_used)
     mse_secret = compute_mse(secret_dequant, secret_extracted)
     psnr_secret = compute_psnr(mse_secret)
-
-    # Display
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-
     axes[0, 0].imshow(cover_np, cmap='gray')
     axes[0, 0].set_title("Cover Image")
     axes[0, 0].axis("off")
-
     axes[0, 1].imshow(stego_np, cmap='gray')
     axes[0, 1].set_title("Stego Image")
     axes[0, 1].axis("off")
-
     axes[1, 0].imshow(secret_dequant, cmap='gray')
     axes[1, 0].set_title("Original Secret Image")
     axes[1, 0].axis("off")
-
     axes[1, 1].imshow(secret_extracted, cmap='gray')
     axes[1, 1].set_title("Extracted Secret Image")
     axes[1, 1].axis("off")
-
     fig.suptitle(
         f"Original vs. Stego Image MSE: {mse_cover:.2f}, PSNR: {psnr_cover:.2f} dB\n"
         f"Original vs. Extracted Secret MSE: {mse_secret:.2f}, PSNR: {psnr_secret:.2f} dB\n"
         f"Embedding Time: {embedTime:.5f}s, Extraction Time: {extractTime:.5f}s",
         fontsize=14
     )
-
     plt.tight_layout()
-
     plt.show()
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Uso: python LSB_spatial.py image_path logo_path")
+        sys.exit(1)
+    cover_image_path = sys.argv[1]
+    secret_image_path = sys.argv[2]
+    main(cover_image_path, secret_image_path)
 
 """
 ridimensionamento automatico a misura immagine

@@ -95,7 +95,7 @@ class GUI:
         algo_name = Path(algo_relative_path).stem
         self.selected_algorithm_name.set(algo_name)
 
-        if algo_name.lower() == "dct-text":
+        if algo_name.lower() == "dct_text":
             self.canvas2.pack_forget()
             self.upload_button2.pack_forget()
             self.text_label.pack(pady=5)
@@ -130,7 +130,7 @@ class GUI:
         algo_name = self.selected_algorithm_name.get().lower()
         text_input = None
 
-        if algo_name == "dct-text":
+        if algo_name == "dct_text":
             text_input = self.text_input.get("1.0", tk.END).strip()
             if not text_input:
                 messagebox.showwarning("Warning", "Please enter the text to embed.")
