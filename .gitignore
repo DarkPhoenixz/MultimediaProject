@@ -1,3 +1,4 @@
 .DS_Store
 __MACOSX/
 boot.py 
+__pycache__/
