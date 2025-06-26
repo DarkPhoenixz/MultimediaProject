@@ -15,10 +15,10 @@ MultimediaProject is a comprehensive toolkit for image steganography and waterma
 ## Getting Started
 
 ### Prerequisites
-- **Python 3.8+** (Recommended: Python 3.10 or newer)
+- **Python 3.13.3+** (Required)
+- **Tkinter 8.6+** (Required for GUI; must be installed and available in your Python environment)
 - [pip](https://pip.pypa.io/en/stable/)
 - [Git](https://git-scm.com/)
-- (Optional) [Tkinter](https://wiki.python.org/moin/TkInter) for GUI support (usually included with Python)
 
 ### Installation
 1. **Clone the repository:**
@@ -26,18 +26,27 @@ MultimediaProject is a comprehensive toolkit for image steganography and waterma
    git clone https://github.com/yourusername/MultimediaProject.git
    cd MultimediaProject
    ```
-2. **Create a virtual environment (recommended):**
+2. **Run the boot script:**
    ```sh
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On Linux/macOS:
-   source venv/bin/activate
+   python boot_script.py
    ```
-3. **Install dependencies:**
-   ```sh
-   pip install -r requirements.txt
-   ```
+   The boot script will automatically:
+   - Check your Python and Tkinter versions
+   - Set up a virtual environment if needed
+   - Install all required dependencies
+   - Prepare the project for first use
+
+   **No manual environment or dependency setup is required!**
+
+#### Boot Script Flags
+You can use the following flags when launching the boot script:
+- `--no-emoji` : Disables emoji in log and console output (useful for terminals that do not support Unicode/emoji).
+- `--force-recreate` : Forces the recreation of the virtual environment, even if one already exists (useful if your environment is broken or you want a clean setup).
+
+Example:
+```sh
+python boot_script.py --no-emoji --force-recreate
+```
 
 ### Usage
 
