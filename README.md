@@ -21,7 +21,7 @@
 ## 🚀 Demo
 
 <p align="center">
-  <img src="githubDecors/example.png" width="600" alt="GUI Demo"/>
+  <img src="githubDecors/example.gif" width="600" alt="GUI Demo"/>
   <br/>
   <i>Example: Interactive GUI for watermarking and steganography</i>
 </p>
