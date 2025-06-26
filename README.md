@@ -40,7 +40,6 @@
 | Text Watermarking | ✅ |
 | Image Watermarking | ✅ |
 | GUI          |   ✅    |
-| Batch Run    |   ✅    |
 
 ---
 
@@ -119,9 +118,7 @@ python boot_script.py --no-emoji --force-recreate
 
 ---
 
-## 📄 License
-[MIT License](LICENSE)
-
 ## 👤 Authors
-- Your Name <your.email@example.com>
-- Contributors: See GitHub commit history 
+- Matteo Gallina <matt.gallina@gmail.com>
+- Graziana Calderaro <your.email@example.com>
+- Emily Gigliuto <your.email@example.com>
