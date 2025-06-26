@@ -1,7 +1,7 @@
 # MultimediaProject
 
 <p align="center">
-  <img src="images/logo.png" width="120" alt="Project Logo"/>
+  <img src="githubDecors/logo.png" width="120" alt="Project Logo"/>
 </p>
 
 <p align="center">

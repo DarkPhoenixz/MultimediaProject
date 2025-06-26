@@ -16,6 +16,11 @@ print("Ricevuto:")
 print(" - image:", cover_image_path)
 print(" - logo :", secret_image_path)
 
+def pad_to_shape(img_np, target_shape):
+    padded = np.zeros(target_shape, dtype=img_np.dtype)
+    h, w = img_np.shape
+    padded[:h, :w] = img_np
+    return padded
 
 def quantize_to_n_bits(image_array, n):
     """
@@ -45,8 +50,10 @@ def embed_secret_image(cover_np, secret_np, bits_used):
     - The cover image's lower 'bits_used' bits are replaced by the secret image's data.
     """
     # Ensure images have the same dimensions
-    if cover_np.shape != secret_np.shape:
-        raise ValueError("Cover and secret images must have the same dimensions.")
+    if cover_np.shape < secret_np.shape:
+        padded = np.zeros(secret_np.shape, dtype=cover_np.dtype)
+        h, w = cover_np.shape
+        padded[:h, :w] = cover_np
     
     # Quantize the secret image to the desired bit-depth.
     secret_quant = quantize_to_n_bits(secret_np, bits_used)
@@ -93,25 +100,26 @@ if __name__ == "__main__":
         print("Nessuna immagine selezionata. Uscita dal programma.")
         exit()
 
-    # Carica immagine cover e controlla dimensione
-    cover_image = Image.open(cover_image_path).convert("L")  # Scala di grigi
-    if cover_image.size != (512, 512):
-        print(f"Ridimensionamento immagine cover da {cover_image.size} a 512x512")
-        cover_image = cover_image.resize((512, 512))
-    
+    cover_image = Image.open(cover_image_path).convert("L")
     cover_np = np.array(cover_image)
+    h_cover, w_cover = cover_np.shape
 
     if not secret_image_path:
         print("Nessuna immagine selezionata. Uscita dal programma.")
         exit()
 
-    # Carica immagine stego e controlla dimensione
-    secret_image = Image.open(secret_image_path).convert("L")  # Scala di grigi
-    if secret_image.size != (512, 512):
-        print(f"Ridimensionamento immagine cover da {secret_image.size} a 512x512")
-        secret_image = secret_image.resize((512, 512))
-    
+    secret_image = Image.open(secret_image_path).convert("L")
     secret_np = np.array(secret_image)
+    h_secret, w_secret = secret_np.shape
+
+    if h_secret > h_cover or w_secret > w_cover:
+        print(f"Ridimensionamento secret image da {(w_secret, h_secret)} a {(w_cover, h_cover)}")
+        secret_image = secret_image.resize((w_cover, h_cover))
+        secret_np = np.array(secret_image)
+
+    elif h_secret < h_cover or w_secret < w_cover:
+        print(f"Padding secret image da {(w_secret, h_secret)} a {(w_cover, h_cover)}")
+        secret_np = pad_to_shape(secret_np, (h_cover, w_cover))
 
     # Percorsi hardcoded
     stego_image_path = 'stego.png'
@@ -179,3 +187,7 @@ if __name__ == "__main__":
 
     plt.show()
 
+"""
+ridimensionamento automatico a misura immagine
+no limitazioni su dimensione immagine
+"""
