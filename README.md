@@ -38,6 +38,8 @@ MultimediaProject is a comprehensive toolkit for image steganography and waterma
 
    **No manual environment or dependency setup is required!**
 
+   **After installation, the GUI will launch automatically.**
+
 #### Boot Script Flags
 You can use the following flags when launching the boot script:
 - `--no-emoji` : Disables emoji in log and console output (useful for terminals that do not support Unicode/emoji).
@@ -50,19 +52,23 @@ python boot_script.py --no-emoji --force-recreate
 
 ### Usage
 
-#### 1. **Run the GUI Application**
-   ```sh
-   python boot_script.py
-   ```
-   - The GUI allows you to select algorithms, load images, and visualize results interactively.
+#### 1. **Using the GUI Application (Recommended)**
+   - After installation, the GUI will open automatically. If not, you can launch it with:
+     ```sh
+     python boot_script.py
+     ```
+   - **Select the images you want to use** for cover and watermark/secret from the `images/` folder included in the project.
+   - The GUI allows you to choose the algorithm, load images, and visualize results interactively.
+   - **It is strongly recommended to use the GUI** for the best experience and to avoid manual errors.
 
-#### 2. **Run Individual Algorithms**
+#### 2. **Running Individual Algorithms from Terminal (Advanced/Optional)**
    Each algorithm is available as a standalone script. Example (DCT full image watermarking):
    ```sh
    python algorithms/DCT/Image/DCT-full.py images/lena.png images/mark.png
    ```
-   - Replace the image paths as needed.
+   - Replace the image paths as needed (use images from the `images/` folder).
    - Output images and metrics will be saved in the working directory.
+   - **Note:** Direct script execution is possible but the GUI is preferred for ease of use.
 
 #### 3. **Batch Run All Algorithms**
    ```sh
