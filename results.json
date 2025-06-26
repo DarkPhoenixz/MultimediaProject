@@ -1,0 +1,100 @@
+{
+    "DCT": {
+        "DCT-full": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        },
+        "DCT-JPEG-like": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        },
+        "DCT-lowFreq": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        },
+        "DCT-singleQuant": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        },
+        "DCT-text": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        }
+    },
+    "DFT": {
+        "DFT": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        }
+    },
+    "DSSS": {
+        "DSSS": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        }
+    },
+    "DWT": {
+        "DWT-multiLevel": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        },
+        "DWT-oneLevel": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        },
+        "DWT-otsu": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        }
+    },
+    "LSB": {
+        "LSB-spatial": {
+            "mse_cover": null,
+            "psnr_cover": null,
+            "mse_watermark": null,
+            "psnr_watermark": null,
+            "embedding_time": null,
+            "extraction_time": null
+        }
+    }
+}
