@@ -7,7 +7,6 @@
 <p align="center">
   <a href="https://python.org/"><img src="https://img.shields.io/badge/python-3.13%2B-blue" alt="Python Version"></a>
   <img src="https://img.shields.io/badge/tkinter-8.6%2B-blueviolet" alt="Tkinter Version">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="Platform">
 </p>
 
@@ -54,7 +53,7 @@
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/yourusername/MultimediaProject.git
+   git clone https://github.com/DarkPhoenixz/MultimediaProject.git
    cd MultimediaProject
    ```
 2. **Run the boot script:**

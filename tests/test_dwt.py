@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from algorithms.DWT.Image import DWT-multiLevel, DWT-oneLevel, DWT-otsu
+from algorithms.DWT.Image import DWT_multiLevel, DWT_oneLevel, DWT_otsu
 
 def test_mse_identical():
     arr = np.ones((10, 10), dtype=np.uint8) * 100

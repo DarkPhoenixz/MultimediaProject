@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from algorithms.LSB.Image import LSB-spatial
+from algorithms.LSB.Image import LSB_spatial
 
 def test_mse_identical():
     arr = np.ones((10, 10), dtype=np.uint8) * 100

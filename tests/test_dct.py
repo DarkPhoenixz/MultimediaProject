@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
-from algorithms.DCT.Image import DCT-full, DCT-JPEG-like, DCT-lowFreq, DCT-singleQuant
-from algorithms.DCT.Text import DCT-text
+from algorithms.DCT.Image import DCT_full, DCT_JPEG_like, DCT_lowFreq, DCT_singleQuant
+from algorithms.DCT.Text import DCT_text
 
 # --- Test utilità comuni ---
 def test_mse_identical():

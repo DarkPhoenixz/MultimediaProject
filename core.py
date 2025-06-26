@@ -32,6 +32,8 @@ def get_required_modules(req_file="requirements.txt"):
                 mod = "skimage"
             elif mod == "packaging":
                 mod = "packaging"
+            elif mod == "pytest":
+                mod = "pytest"
             modules.append(mod)
     return modules
 
