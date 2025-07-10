@@ -204,6 +204,6 @@ pytest -v
 ---
 
 ## 👤 Authors
-- Matteo Gallina <matt.gallina@gmail.com>
-- Graziana Calderaro <your.email@example.com>
-- Emily Gigliuto <your.email@example.com>
+- Matteo Gallina <matt.gallina01@gmail.com>
+- Graziana Calderaro <grazycalde@virgilio.it>
+- Emily Gigliuto <gigliutoemily@gmail.com>
