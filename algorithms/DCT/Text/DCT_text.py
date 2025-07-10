@@ -6,8 +6,6 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from scipy.fftpack import dct, idct
 
-
-
 ########################################################
 # JPEG Quantization Matrix (for luminance, quality ~50)
 ########################################################
@@ -246,6 +244,8 @@ def main(cover_image_path, secret_text):
     psnr_cover = compute_psnr(mse_cover)
     ssim_cover = compute_ssim(cover_np, stego_np)
 
+    print("secret message: ", secret_message)
+    #visualizzazione 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
     ax1.imshow(cover_np, cmap='gray')
     ax1.set_title('Cover Image')
