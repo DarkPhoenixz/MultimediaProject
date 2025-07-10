@@ -71,7 +71,7 @@ class GUI:
 
         def build_menu_recursive(parent_menu, current_path):
             for item in sorted(current_path.iterdir()):
-                if item.is_dir():
+                if item.is_dir() and not item.name.startswith("__"):
                     submenu = tk.Menu(parent_menu, tearoff=0)
                     build_menu_recursive(submenu, item)
                     parent_menu.add_cascade(label=item.name, menu=submenu)

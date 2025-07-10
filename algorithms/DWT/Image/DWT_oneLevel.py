@@ -121,6 +121,27 @@ def compute_psnr(mse, max_pixel=255.0):
     psnr = 10 * np.log10((max_pixel ** 2) / mse)
     return psnr
 
+def compute_ssim(img1, img2, window_size=11, sigma=1.5):
+    img1 = img1.astype(np.float32)
+    img2 = img2.astype(np.float32)
+    C1 = (0.01 * 255) ** 2
+    C2 = (0.03 * 255) ** 2
+    mu1 = _gaussian_filter(img1, sigma, window_size)
+    mu2 = _gaussian_filter(img2, sigma, window_size)
+    mu1_sq = mu1 ** 2
+    mu2_sq = mu2 ** 2
+    mu1_mu2 = mu1 * mu2
+    sigma1_sq = _gaussian_filter(img1 ** 2, sigma, window_size) - mu1_sq
+    sigma2_sq = _gaussian_filter(img2 ** 2, sigma, window_size) - mu2_sq
+    sigma12 = _gaussian_filter(img1 * img2, sigma, window_size) - mu1_mu2
+    ssim_map = ((2 * mu1_mu2 + C1) * (2 * sigma12 + C2)) / \
+               ((mu1_sq + mu2_sq + C1) * (sigma1_sq + sigma2_sq + C2))
+    return np.mean(ssim_map)
+
+def _gaussian_filter(img, sigma, window_size):
+    from scipy.ndimage import uniform_filter
+    return uniform_filter(img, size=window_size)
+
 def main(cover_image_path, secret_image_path):
     stego_image_path = 'stego_dwt.png'
     bits_used = 2
@@ -128,20 +149,20 @@ def main(cover_image_path, secret_image_path):
         cover_image_path, secret_image_path, stego_image_path, bits_used=bits_used)
     secret_extracted = extract_secret_image_dwt(stego_image_path, bits_used=bits_used)
     embedTime = timeit.timeit(
-        "embed_secret_image_dwt(cover_image_path, secret_image_path, stego_image_path, bits_used=bits_used)",
-        globals=globals(),
+        lambda: embed_secret_image_dwt(cover_image_path, secret_image_path, stego_image_path, bits_used=bits_used),
         number=10
     )
     extractTime = timeit.timeit(
-        "extract_secret_image_dwt(stego_image_path, bits_used=bits_used)",
-        globals=globals(),
+        lambda: extract_secret_image_dwt(stego_image_path, bits_used=bits_used),
         number=10
     )
     mse_cover = compute_mse(cover_np, stego_np)
     psnr_cover = compute_psnr(mse_cover)
+    ssim_cover = compute_ssim(cover_np, stego_np)
     secret_dequant = dequantize_from_n_bits(secret_quant, bits_used)
     mse_secret = compute_mse(secret_dequant, secret_extracted)
     psnr_secret = compute_psnr(mse_secret)
+    ssim_secret = compute_ssim(secret_dequant, secret_extracted)
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     axes[0, 0].imshow(cover_np, cmap='gray')
     axes[0, 0].set_title("Cover Image")
@@ -156,8 +177,8 @@ def main(cover_image_path, secret_image_path):
     axes[1, 1].set_title("Extracted Secret Image")
     axes[1, 1].axis("off")
     fig.suptitle(
-        f"Cover vs. Stego MSE: {mse_cover:.2f}, PSNR: {psnr_cover:.2f} dB\n"
-        f"Secret (quantized) vs. Extracted MSE: {mse_secret:.2f}, PSNR: {psnr_secret:.2f} dB\n"
+        f"Cover vs. Stego MSE: {mse_cover:.2f}, PSNR: {psnr_cover:.2f} dB, SSIM: {ssim_cover:.4f}\n"
+        f"Secret (quantized) vs. Extracted MSE: {mse_secret:.2f}, PSNR: {psnr_secret:.2f} dB, SSIM: {ssim_secret:.4f}\n"
         f"Embedding Time: {embedTime:.2f} s, Extraction Time: {extractTime:.2f} s",
         fontsize=14
     )

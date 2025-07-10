@@ -42,12 +42,58 @@
 
 ---
 
-## 📦 Getting Started
+## 📋 Prerequisites
 
-> **Requirements:**<br/>
-> - Python 3.13.3 or newer<br/>
-> - Tkinter 8.6 or newer (mandatory, for GUI)<br/>
-> - pip, Git
+### System Requirements
+- **Python 3.13.3 or newer**
+- **Tkinter 8.6 or newer** (mandatory, for GUI)
+- **pip** (Python package installer)
+- **Git** (for cloning the repository)
+
+### Operating System Support
+- ✅ **Windows 10/11**
+- ✅ **Linux** (Ubuntu 20.04+, Debian 11+, etc.)
+- ✅ **macOS** (10.15+)
+
+### Python Installation
+
+#### Windows
+1. **Download Python from [python.org](https://www.python.org/downloads/)**
+2. **During installation, make sure to check:**
+   - ✅ "Add Python to PATH"
+   - ✅ "Install pip"
+   - ✅ "Install Tkinter" (usually included by default)
+
+#### Linux (Ubuntu/Debian)
+```bash
+sudo apt update
+sudo apt install python3 python3-pip python3-tk git
+```
+
+#### macOS
+```bash
+# Using Homebrew (recommended)
+brew install python3
+
+# Or download from python.org
+# Make sure Tkinter is included
+```
+
+### Verify Installation
+```bash
+# Check Python version
+python --version  # Should be 3.13.3 or newer
+
+# Check pip
+pip --version
+
+# Check Tkinter
+python -c "import tkinter; print('Tkinter is available')"
+```
+
+---
+
+## 📦 Getting Started
 
 ### Installation
 
@@ -56,15 +102,18 @@
    git clone https://github.com/DarkPhoenixz/MultimediaProject.git
    cd MultimediaProject
    ```
+
 2. **Run the boot script:**
    ```sh
    python boot_script.py
    ```
+   
    The boot script will:
-   - Check Python and Tkinter versions
-   - Set up a virtual environment
-   - Install all dependencies
-   - Prepare the project for first use
+   - ✅ Check Python and Tkinter versions
+   - ✅ Set up a virtual environment
+   - ✅ Install all dependencies from `requirements.txt`
+   - ✅ Prepare the project for first use
+   - 🚀 Launch the GUI automatically
 
    **After installation, the GUI will launch automatically.**
 
@@ -75,6 +124,26 @@
 Example:
 ```sh
 python boot_script.py --no-emoji --force-recreate
+```
+
+#### Manual Installation (Alternative)
+If the boot script fails, you can install manually:
+
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# Linux/macOS:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+python app.py
 ```
 
 ---
@@ -93,7 +162,7 @@ python boot_script.py --no-emoji --force-recreate
 ### 2. **Running Algorithms from Terminal (Advanced/Optional)**
 - Example (DCT full image watermarking):
   ```sh
-  python algorithms/DCT/Image/DCT-full.py images/lena.png images/mark.png
+  python algorithms/DCT/Image/DCT_full.py images/lena.png images/mark.png
   ```
 - Use images from the `images/` folder.
 - Output images and metrics will be saved in the working directory.
@@ -103,17 +172,34 @@ python boot_script.py --no-emoji --force-recreate
 
 ## 🧪 Testing
 
-- **Manual:** Run scripts in `algorithms/` with sample images from `images/`.
-- **Automated:** If available, run test scripts or use `pytest`.
-  ```sh
-  pytest
-  ```
+### Running Tests
+```bash
+# Activate virtual environment first
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux/macOS
+
+# Run all tests
+pytest
+
+# Run specific test file
+pytest tests/test_dct.py
+
+# Run with verbose output
+pytest -v
+```
+
+### Test Notes
+- Tests use real images from the `images/` folder
+- SSIM (Structural Similarity Index) is used for visual quality assessment
+- Some tests may be marked as "expected fail" (xfail) due to algorithm limitations
+- Visual evaluation is recommended alongside automated tests
 
 ---
 
 ## 📝 Notes
 - `.gitignore` excludes macOS system files and unnecessary artifacts.
 - For any issues, use `boot_script.py` for guided setup.
+- The project uses a virtual environment to avoid conflicts with system Python packages.
 
 ---
 
