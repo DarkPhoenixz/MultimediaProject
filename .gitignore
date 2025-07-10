@@ -4,3 +4,4 @@ boot.py
 __pycache__/
 venv/
 testsNotWorking/
+.__MACOSX
