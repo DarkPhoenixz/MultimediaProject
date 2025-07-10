@@ -2,3 +2,5 @@
 __MACOSX/
 boot.py 
 __pycache__/
+venv/
+testsNotWorking/

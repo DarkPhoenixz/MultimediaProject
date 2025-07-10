@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 from PIL import Image
-from algorithms.DCT.Image import DCT_full, DCT_JPEG_like, DCT_lowFreq, DCT_singleQuant
-from algorithms.DCT.Text import DCT_text
+from ..algorithms.DCT.Image import DCT_full, DCT_JPEG_like, DCT_lowFreq, DCT_singleQuant
+from ..algorithms.DCT.Text import DCT_text
 import os
 from tests.test_utils import compute_ssim, load_test_images
 

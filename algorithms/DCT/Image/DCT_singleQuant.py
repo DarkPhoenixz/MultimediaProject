@@ -256,5 +256,4 @@ if __name__ == "__main__":
     print(" - timageext :", secret_image_path)
     main(cover_image_path, secret_image_path)
 
-#capire cosa fare per bene
-#guarda di nuovo il risultato
+#spiegare perchè limmagine è grande 32x32
