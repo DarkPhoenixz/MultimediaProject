@@ -12,7 +12,10 @@ def in_venv():
     return sys.prefix != sys.base_prefix
 
 def get_required_modules(req_file="requirements.txt"):
-    path = Path(req_file)
+    # Cerca requirements.txt nella directory dove si trova questo file (boot/core.py)
+    project_root = Path(__file__).parent
+    path = project_root / req_file
+    print(f"Looking for requirements.txt at: {path.resolve()}")
     if not path.exists():
         sys.exit(f"File '{req_file}' not found.")
     modules = []
@@ -69,7 +72,7 @@ def main(use_emoji):
 
     try:
         lg.log("Launching application...", "🚀")
-        subprocess.check_call([sys.executable, "app.py"])
+        subprocess.check_call([sys.executable, "boot/app.py"])
     except subprocess.CalledProcessError:
         sys.exit("An error occurred while launching the application.")
 

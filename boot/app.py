@@ -63,7 +63,7 @@ class GUI:
 
     def build_algorithm_menu(self):
         self.algo_menu = tk.Menu(self.root, tearoff=0)
-        base_path = Path(__file__).parent / "algorithms"
+        base_path = Path(__file__).parent.parent / "algorithms"
 
         if not base_path.exists():
             messagebox.showerror("Error", "The 'algorithms' folder was not found.")
@@ -140,7 +140,9 @@ class GUI:
                 messagebox.showwarning("Warning", "Please upload a logo before starting.")
                 return
 
-        script_path = os.path.join(os.path.dirname(__file__), "algorithms", self.selected_algorithm_path)
+        project_root = os.path.dirname(os.path.dirname(__file__))
+        script_path = os.path.join(project_root, "algorithms", self.selected_algorithm_path)
+        
         if not os.path.exists(script_path):
             messagebox.showerror("Error", f"Script '{self.selected_algorithm_path}' not found.")
             return

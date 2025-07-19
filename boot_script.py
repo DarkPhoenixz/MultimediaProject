@@ -138,7 +138,7 @@ def bootstrap() -> None:
         check_tkinter_version()
 
         lg.log("Environment OK. Launching core...", "✅")
-        import core
+        from boot import core
         if not hasattr(core, "main"):
             raise EnvironmentSetupError("core.py must define a `main(use_emoji)` function.")
         core.main(use_emoji=USE_EMOJI)
