@@ -5,3 +5,4 @@ __pycache__/
 venv/
 testsNotWorking/
 docs.txt
+/*.png
