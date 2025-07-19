@@ -22,27 +22,27 @@ JPEG_QUANT_MATRIX = np.array([
 ], dtype=np.float32)
 
 def dct2(block):
-    """Calcola la DCT 2D (tipo II) con normalizzazione ortogonale."""
+    """Calculates the 2D DCT (type II) with orthogonal normalization."""
     return dct(dct(block.T, norm='ortho').T, norm='ortho')
 
 def idct2(block):
-    """Calcola l'IDCT 2D (tipo III) con normalizzazione ortogonale."""
+    """Calculates the 2D IDCT (type III) with orthogonal normalization."""
     return idct(idct(block.T, norm='ortho').T, norm='ortho')
 
 def embed_bits_in_quant_coeff(coef, bits, num_bits):
     """
-    Inserisce 'num_bits' (fornite come stringa, ad es. "10") nei LSB di un coefficiente quantizzato.
-    Il coefficiente è un intero (dopo il rounding).
+    Inserts 'num_bits' (provided as a string, e.g., "10") into the LSBs of a quantized coefficient.
+    The coefficient is an integer (after rounding).
     """
     coef_int = int(coef)
-    mask = ~((1 << num_bits) - 1)  # per num_bits=2 => mask = ~0b11 = 0xFC
+    mask = ~((1 << num_bits) - 1)  # for num_bits=2 => mask = ~0b11 = 0xFC
     coef_cleared = coef_int & mask
     new_coef = coef_cleared | int(bits, 2)
     return new_coef
 
 def extract_bits_from_quant_coeff(coef, num_bits):
     """
-    Estrae i 'num_bits' LSB da un coefficiente quantizzato (intero) e restituisce la stringa corrispondente.
+    Extracts the 'num_bits' LSBs from a quantized coefficient (integer) and returns the corresponding string.
     """
     coef_int = int(coef)
     mask = (1 << num_bits) - 1
@@ -52,81 +52,81 @@ def extract_bits_from_quant_coeff(coef, num_bits):
 def embed_secret_dct(cover_path, secret_path, stego_path, block_size, 
                      quant_matrix, target_coeff, bits_per_block):
     """
-    - Immagine cover: 512x512 in scala di grigi.
-    - Immagine segreta: viene ridimensionata a 32x32 (1024 pixel → 8192 bit).
-    - Dividiamo il cover in blocchi 8x8 (4096 blocchi) e embeddiamo in ogni blocco 'bits_per_block' bit,
-      inserendoli nel coefficiente quantizzato in posizione target (ad es. (3,3)).
-    - Al contrario dell'approccio JPEG-like, qui quantizziamo solo il coefficiente target,
-      preservando il resto del blocco e riducendo distorsioni.
+    - Cover image: 512x512 in grayscale.
+    - Secret image: is resized to 32x32 (1024 pixels → 8192 bits).
+    - We divide the cover into 8x8 blocks (4096 blocks) and embed 'bits_per_block' bits in each block,
+      embedding them in the quantized coefficient at position target (e.g., (3,3)).
+    - Unlike the JPEG-like approach, here we only quantize the target coefficient,
+      preserving the rest of the block and reducing distortion.
     """
-    # Carica cover in scala di grigi
+    # Load cover in grayscale
     cover_img = Image.open(cover_path).convert('L')
     cover_np = np.array(cover_img, dtype=np.float32)
     H, W = cover_np.shape
 
     num_blocks_vert = H // block_size
     num_blocks_horiz = W // block_size
-    total_blocks = num_blocks_vert * num_blocks_horiz  # 4096 blocchi (512x512 / 8x8)
+    total_blocks = num_blocks_vert * num_blocks_horiz  # 4096 blocks (512x512 / 8x8)
 
-    # Prepara l'immagine segreta: ridimensiona a 32x32
+    # Prepare secret image: resize to 32x32
     secret_img = Image.open(secret_path).convert('L')
     secret_resized = secret_img.resize((16,16))
     secret_np = np.array(secret_resized, dtype=np.uint8)
-    # Converti l'immagine segreta in una stringa di bit (8 bit per pixel → 1024*8 = 8192 bit)
+    # Convert secret image to a bit string (8 bits per pixel → 1024*8 = 8192 bits)
     secret_bits = ''.join(format(p, '08b') for p in secret_np.flatten())
     print(bits_per_block)
     if len(secret_bits) != total_blocks * bits_per_block:
         secret_bits = secret_bits.ljust(total_blocks * bits_per_block, '0')
-        # raise ValueError(f"La lunghezza della bitstream segreta ({len(secret_bits)} bit) "
-        #                  f"non corrisponde alla capacità ({total_blocks * bits_per_block} bit).")
+        # raise ValueError(f"The length of the secret bitstream ({len(secret_bits)} bits) "
+        #                  f"does not match the capacity ({total_blocks * bits_per_block} bits).")
 
     bit_index = 0
     stego_np = np.zeros_like(cover_np)
 
-    # Per ogni blocco 8x8
+    # For each 8x8 block
     for i in range(num_blocks_vert):
         for j in range(num_blocks_horiz):
             r = i * block_size
             c = j * block_size
             block = cover_np[r:r+block_size, c:c+block_size]
 
-            # 1) DCT del blocco
+            # 1) DCT of the block
             dct_block = dct2(block)
 
-            # 2) SOLO quantizzazione del coefficiente target
+            # 2) ONLY quantization of the target coefficient
             rr, cc = target_coeff
             orig_coef_val = dct_block[rr, cc]
 
-            # Dividiamo per la matrice e arrotondiamo, ma SOLO per il coeff. target
+            # Divide by the matrix and round, but ONLY for the target coefficient
             q_val = orig_coef_val / quant_matrix[rr, cc]
             q_val_rounded = int(round(q_val))
 
-            # 3) Embedding: prendi i 'bits_per_block' bit dalla secret_bits
+            # 3) Embedding: take the 'bits_per_block' bits from secret_bits
             bits_to_embed = secret_bits[bit_index:bit_index + bits_per_block]
             bit_index += bits_per_block
 
-            # Embed dei bit nei LSB del coeff. quantizzato
+            # Embed the bits into the LSBs of the quantized coefficient
             new_q_val = embed_bits_in_quant_coeff(q_val_rounded, bits_to_embed, num_bits=bits_per_block)
 
-            # 4) Dequantizzazione SOLO del coeff. target
+            # 4) Dequantization ONLY of the target coefficient
             dct_block[rr, cc] = new_q_val * quant_matrix[rr, cc]
 
-            # 5) IDCT per ricostruire il blocco
+            # 5) IDCT to reconstruct the block
             stego_block = idct2(dct_block)
             stego_np[r:r+block_size, c:c+block_size] = stego_block
 
-    # Clip e conversione in 8-bit
+    # Clip and convert to 8-bit
     stego_np = np.clip(np.round(stego_np), 0, 255).astype(np.uint8)
     stego_img = Image.fromarray(stego_np, mode='L')
     stego_img.save(stego_path)
-    print(f"Immagine stego salvata in: {stego_path}")
+    print(f"Stego image saved in: {stego_path}")
     return cover_np.astype(np.uint8), secret_np, stego_np
 
 def extract_secret_dct(stego_path, block_size, quant_matrix, 
                        target_coeff, bits_per_block, secret_size):
     """
-    Estrae i bit da ogni blocco (dalla stessa posizione target) e ricostruisce l'immagine segreta.
-    secret_size è (altezza, larghezza) in pixel; in questo esempio 32x32 (1024 pixel → 8192 bit).
+    Extracts bits from each block (at the same target position) and reconstructs the secret image.
+    secret_size is (height, width) in pixels; in this example 32x32 (1024 pixels → 8192 bits).
     """
     stego_img = Image.open(stego_path).convert('L')
     stego_np = np.array(stego_img, dtype=np.float32)
@@ -145,16 +145,16 @@ def extract_secret_dct(stego_path, block_size, quant_matrix,
             # DCT
             dct_block = dct2(block)
 
-            # Quantizziamo SOLO il coeff. target
+            # Quantization ONLY of the coefficient
             rr, cc = target_coeff
             coef_val = dct_block[rr, cc]
             q_val = int(round(coef_val / quant_matrix[rr, cc]))
 
-            # Estrazione dei bit
+            # Extraction of bits
             bits = extract_bits_from_quant_coeff(q_val, num_bits=bits_per_block)
             extracted_bits += bits
 
-    # Dovrebbero essere esattamente secret_size[0]*secret_size[1]*8 bit
+    # Should be exactly secret_size[0]*secret_size[1]*8 bits
     needed_bits = secret_size[0] * secret_size[1] * 8
     extracted_bits = extracted_bits[:needed_bits]
 
@@ -192,8 +192,8 @@ def compute_ssim(img1, img2, window_size=11, sigma=1.5):
     return np.mean(ssim_map)
 
 def _gaussian_filter(img, sigma, window_size):
-    from scipy.ndimage import uniform_filter
-    return uniform_filter(img, size=window_size)
+    from scipy.ndimage import gaussian_filter
+    return gaussian_filter(img, sigma=sigma, truncate=((window_size-1)/2)/sigma)
 
 def main(cover_image_path, secret_image_path):
     
@@ -245,15 +245,15 @@ def main(cover_image_path, secret_image_path):
 if __name__ == "__main__":
     
     if len(sys.argv) != 3:
-        print("Uso: python DCT_singleQuant.py original_image secret_image")
+        print("Usage: python DCT_singleQuant.py original_image secret_image")
         sys.exit(1)
 
     cover_image_path = sys.argv[1]
     secret_image_path = sys.argv[2]
 
-    print("Ricevuto:")
+    print("Received:")
     print(" - image:", cover_image_path)
     print(" - timageext :", secret_image_path)
     main(cover_image_path, secret_image_path)
 
-#spiegare perchè limmagine è grande 32x32
+#explain why the image is large 32x32

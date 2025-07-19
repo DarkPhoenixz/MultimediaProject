@@ -188,7 +188,7 @@ if __name__ == "__main__":
     cover_image_path = sys.argv[1]
     secret_image_path = sys.argv[2]
 
-    print("Ricevuto:")
+    print("Received:")
     print(" - image:", cover_image_path)
     print(" - timageext :", secret_image_path)
     main(cover_image_path, secret_image_path)

@@ -7,23 +7,23 @@ import matplotlib.pyplot as plt
 import sys
 
 def embed_watermark_dct(cover_image_path, watermark_image_path, stego_image_path, alpha=10):
-    # Carica l'immagine di copertura e il watermark (ridimensionato a 128x128)
+    # Load the cover image and the watermark (resized to 128x128)
     cover_img = Image.open(cover_image_path).convert('L')
     watermark_img = Image.open(watermark_image_path).convert('L').resize((128, 128))
     
     cover_np = np.array(cover_img, dtype=np.float32)
     watermark_np = np.array(watermark_img, dtype=np.float32)
     
-    # Normalizza il watermark in [0,1]
+    # Normalize the watermark to [0,1]
     watermark_norm = watermark_np / 255.0
     
-    # Calcola la DCT dell'immagine di copertura
+    # Calculate the DCT of the cover image
     cover_dct = fftpack.dct(fftpack.dct(cover_np.T, norm='ortho').T, norm='ortho')
     
-    # Incorpora il watermark modificando i coefficienti DCT (angolo in alto a sinistra)
+    # Embed the watermark by modifying DCT coefficients (top-left corner)
     cover_dct[:128, :128] += alpha * watermark_norm
     
-    # Calcola la DCT inversa per ottenere l'immagine stego
+    # Calculate the inverse DCT to obtain the stego image
     stego_np = fftpack.idct(fftpack.idct(cover_dct.T, norm='ortho').T, norm='ortho')
     stego_np_clipped = np.clip(stego_np, 0, 255).astype(np.uint8)
     
@@ -34,33 +34,33 @@ def embed_watermark_dct(cover_image_path, watermark_image_path, stego_image_path
     return cover_np, watermark_np, stego_np_clipped
 
 def extract_watermark_dct(stego_image_path, cover_image_path, alpha=10, watermark_size=(128,128)):
-    # Carica l'immagine stego e quella di copertura
+    # Load the stego and cover images
     stego_img = Image.open(stego_image_path).convert('L')
     cover_img = Image.open(cover_image_path).convert('L')
     
     stego_np = np.array(stego_img, dtype=np.float32)
     cover_np = np.array(cover_img, dtype=np.float32)
     
-    # Calcola la DCT per entrambe le immagini
+    # Calculate the DCT for both images
     stego_dct = fftpack.dct(fftpack.dct(stego_np.T, norm='ortho').T, norm='ortho')
     cover_dct = fftpack.dct(fftpack.dct(cover_np.T, norm='ortho').T, norm='ortho')
     
-    # Estrae il watermark dalla differenza dei coefficienti DCT
+    # Extract the watermark from the difference of DCT coefficients
     extracted_watermark = (stego_dct[:watermark_size[0], :watermark_size[1]] - 
                              cover_dct[:watermark_size[0], :watermark_size[1]]) / alpha
     
-    # Riporta il watermark estratto nella scala 0-255
+    # Scale the extracted watermark to 0-255
     extracted_watermark = np.clip(extracted_watermark * 255, 0, 255).astype(np.uint8)
     
     return extracted_watermark
 
 def compute_mse(imageA, imageB):
-    """Calcola il Mean Squared Error tra due immagini."""
+    """Calculates Mean Squared Error between two images."""
     err = np.mean((imageA.astype("float") - imageB.astype("float")) ** 2)
     return err
 
 def compute_psnr(mse, max_pixel=255.0):
-    """Calcola il PSNR (Peak Signal-to-Noise Ratio) dato l'MSE."""
+    """Calculates PSNR (Peak Signal-to-Noise Ratio) given MSE."""
     if mse == 0:
         return float('inf')
     psnr = 10 * np.log10((max_pixel ** 2) / mse)
@@ -84,8 +84,8 @@ def compute_ssim(img1, img2, window_size=11, sigma=1.5):
     return np.mean(ssim_map)
 
 def _gaussian_filter(img, sigma, window_size):
-    from scipy.ndimage import uniform_filter
-    return uniform_filter(img, size=window_size)
+    from scipy.ndimage import gaussian_filter
+    return gaussian_filter(img, sigma=sigma, truncate=((window_size-1)/2)/sigma)
 
 def main(cover_image_path, secret_image_path):
     stego_image_path = 'stego_dct.png'
@@ -132,11 +132,11 @@ def main(cover_image_path, secret_image_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Uso: python DCT_lowFreq.py original_image secret_image")
+        print("Usage: python DCT_lowFreq.py original_image secret_image")
         sys.exit(1)
     cover_image_path = sys.argv[1]
     secret_image_path = sys.argv[2]
-    print("Ricevuto:")
+    print("Received:")
     print(" - image:", cover_image_path)
     print(" - timageext :", secret_image_path)
     main(cover_image_path, secret_image_path)

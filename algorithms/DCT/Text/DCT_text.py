@@ -197,21 +197,21 @@ def compute_ssim(img1, img2, window_size=11, sigma=1.5):
     return np.mean(ssim_map)
 
 def _gaussian_filter(img, sigma, window_size):
-    from scipy.ndimage import uniform_filter
-    return uniform_filter(img, size=window_size)
+    from scipy.ndimage import gaussian_filter
+    return gaussian_filter(img, sigma=sigma, truncate=((window_size-1)/2)/sigma)
 
 def main(cover_image_path, secret_text):
     stego_image_path = 'stego_dct_string.png'
     if not cover_image_path:
-        print("Nessuna immagine selezionata. Uscita dal programma.")
+        print("No image selected. Exiting the program.")
         exit()
     cover_image = Image.open(cover_image_path).convert("L")
     if cover_image.size != (512, 512):
-        print(f"Ridimensionamento immagine cover da {cover_image.size} a 512x512")
+        print(f"Resizing cover image from {cover_image.size} to 512x512")
         cover_image = cover_image.resize((512, 512))
     cover_np = np.array(cover_image)
     if not secret_text:
-        print("Nessun testo selezionato. Uscita dal programma.")
+        print("No text selected. Exiting the program.")
         exit()
     secret_message = secret_text
     cover_np, stego_np = embed_secret_dct_string(
@@ -245,7 +245,7 @@ def main(cover_image_path, secret_text):
     ssim_cover = compute_ssim(cover_np, stego_np)
 
     print("secret message: ", secret_message)
-    #visualizzazione 
+    #visualization 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
     ax1.imshow(cover_np, cmap='gray')
     ax1.set_title('Cover Image')
@@ -262,15 +262,15 @@ def main(cover_image_path, secret_text):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Uso: python DCT_text.py image_path text_to_hide")
+        print("Usage: python DCT_text.py image_path text_to_hide")
         sys.exit(1)
     cover_image_path = sys.argv[1]
     secret_text = sys.argv[2]
-    print("Ricevuto:")
+    print("Received:")
     print(" - image:", cover_image_path)
     print(" - text :", secret_text)
     main(cover_image_path, secret_text)
     
-#non va bene con immagini conpattern o aree molto piatte poiche dct modifica inmaniera aggressiva
-#possibili cose da fare dithering
-#controllare frequenza di embed
+#does not work well with images with patterns or very flat areas because dct modifies aggressively
+#possible things to do dithering
+#check embedding frequency

@@ -170,8 +170,8 @@ def compute_ssim(img1, img2, window_size=11, sigma=1.5):
     return np.mean(ssim_map)
 
 def _gaussian_filter(img, sigma, window_size):
-    from scipy.ndimage import uniform_filter
-    return uniform_filter(img, size=window_size)
+    from scipy.ndimage import gaussian_filter
+    return gaussian_filter(img, sigma=sigma, truncate=((window_size-1)/2)/sigma)
 
 def main(cover_image_path, secret_image_path):
     stego_image_path = "stego_singlelevel_bior2.2.png"
@@ -240,7 +240,7 @@ if __name__ == "__main__":
         sys.exit(1)
     cover_image_path = sys.argv[1]
     secret_image_path = sys.argv[2]
-    print("Ricevuto:")
+    print("Received:")
     print(" - image:", cover_image_path)
     print(" - timageext :", secret_image_path)
     main(cover_image_path, secret_image_path)

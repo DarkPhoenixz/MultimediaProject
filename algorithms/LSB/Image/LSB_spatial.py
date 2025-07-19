@@ -1,4 +1,4 @@
-#Grazy  Steganografia
+#Grazy  Steganography
 import sys
 import numpy as np
 import timeit
@@ -6,6 +6,9 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 def pad_to_shape(img_np, target_shape):
+    """
+    Pad a numpy array to the target shape with zeros.
+    """
     padded = np.zeros(target_shape, dtype=img_np.dtype)
     h, w = img_np.shape
     padded[:h, :w] = img_np
@@ -33,7 +36,6 @@ def dequantize_from_n_bits(quantized_array, n):
 def embed_secret_image(cover_np, secret_np, bits_used):
     """
     Embed a secret image into a cover image using the specified number of LSBs.
-    
     - Both images are assumed to be 512x512 and in grayscale.
     - The secret image is quantized to 'bits_used' bits.
     - The cover image's lower 'bits_used' bits are replaced by the secret image's data.
@@ -85,7 +87,7 @@ def compute_psnr(mse, max_pixel=255.0):
 
 def compute_ssim(img1, img2, window_size=11, sigma=1.5):
     """
-    Calcola SSIM (Structural Similarity Index) tra due immagini.
+    Compute SSIM (Structural Similarity Index) between two images.
     """
     img1 = img1.astype(np.float32)
     img2 = img2.astype(np.float32)
@@ -104,31 +106,31 @@ def compute_ssim(img1, img2, window_size=11, sigma=1.5):
     return np.mean(ssim_map)
 
 def _gaussian_filter(img, sigma, window_size):
-    from scipy.ndimage import uniform_filter
-    return uniform_filter(img, size=window_size)
+    from scipy.ndimage import gaussian_filter
+    return gaussian_filter(img, sigma=sigma, truncate=((window_size-1)/2)/sigma)
 
 def main(cover_image_path, secret_image_path):
-    print("Ricevuto:")
+    print("Received:")
     print(" - image:", cover_image_path)
     print(" - logo :", secret_image_path)
     if not cover_image_path:
-        print("Nessuna immagine selezionata. Uscita dal programma.")
+        print("No image selected. Exiting program.")
         exit()
     cover_image = Image.open(cover_image_path).convert("L")
     cover_np = np.array(cover_image)
     h_cover, w_cover = cover_np.shape
     if not secret_image_path:
-        print("Nessuna immagine selezionata. Uscita dal programma.")
+        print("No secret image selected. Exiting program.")
         exit()
     secret_image = Image.open(secret_image_path).convert("L")
     secret_np = np.array(secret_image)
     h_secret, w_secret = secret_np.shape
     if h_secret > h_cover or w_secret > w_cover:
-        print(f"Ridimensionamento secret image da {(w_secret, h_secret)} a {(w_cover, h_cover)}")
+        print(f"Resizing secret image from {(w_secret, h_secret)} to {(w_cover, h_cover)}")
         secret_image = secret_image.resize((w_cover, h_cover))
         secret_np = np.array(secret_image)
     elif h_secret < h_cover or w_secret < w_cover:
-        print(f"Padding secret image da {(w_secret, h_secret)} a {(w_cover, h_cover)}")
+        print(f"Padding secret image from {(w_secret, h_secret)} to {(w_cover, h_cover)}")
         secret_np = pad_to_shape(secret_np, (h_cover, w_cover))
     stego_image_path = 'stego.png'
     bits_used = 2
@@ -177,13 +179,13 @@ def main(cover_image_path, secret_image_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Uso: python LSB_spatial.py image_path logo_path")
+        print("Usage: python LSB_spatial.py image_path logo_path")
         sys.exit(1)
     cover_image_path = sys.argv[1]
     secret_image_path = sys.argv[2]
     main(cover_image_path, secret_image_path)
 
 """
-ridimensionamento automatico a misura immagine
-no limitazioni su dimensione immagine
+Automatic resizing to image size
+No limitation on image size
 """

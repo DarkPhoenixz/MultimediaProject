@@ -8,7 +8,7 @@ import sys
 import math
 
 ###############################################################################
-# 1) Matrice di quantizzazione JPEG (per la luminanza, qualità ~50)
+# 1) Quantization matrix JPEG (for luminance, quality ~50)
 ###############################################################################
 Q50 = np.array([
     [16, 11, 10, 16, 24,  40,  51,  61],
@@ -35,33 +35,33 @@ Q90 = np.array([
 Q100 = np.ones((8,8), dtype=np.float32)
 
 ###############################################################################
-# 2) Funzioni DCT/IDCT 2D (con normalizzazione 'ortho')
+# 2) DCT/IDCT 2D functions (with 'ortho' normalization)
 ###############################################################################
 def dct2(block):
-    """Calcola la DCT 2D (tipo II) con normalizzazione ortogonale."""
+    """Calculates the 2D DCT (type II) with orthogonal normalization."""
     return dct(dct(block.T, norm='ortho').T, norm='ortho')
 
 def idct2(block):
-    """Calcola l'IDCT 2D (tipo III) con normalizzazione ortogonale."""
+    """Calculates the 2D IDCT (type III) with orthogonal normalization."""
     return idct(idct(block.T, norm='ortho').T, norm='ortho')
 
 ###############################################################################
-# 3) Funzioni per l'embedding e l'estrazione di bit in un coefficiente quantizzato
+# 3) Functions for embedding and extracting bits from a quantized coefficient
 ###############################################################################
 def embed_bits_in_quant_coeff(coef, bits, num_bits=2):
     """
-    Inserisce 'num_bits' (fornite come stringa, ad es. "10") nei LSB di un coefficiente quantizzato.
-    Il coefficiente è un intero (dopo il rounding).
+    Inserts 'num_bits' (provided as a string, e.g., "10") into the LSBs of a quantized coefficient.
+    The coefficient is an integer (after rounding).
     """
     coef_int = int(coef)
-    mask = ~((1 << num_bits) - 1)  # per num_bits=2 => mask = ~0b11 = 0xFC
+    mask = ~((1 << num_bits) - 1)  # for num_bits=2 => mask = ~0b11 = 0xFC
     coef_cleared = coef_int & mask
     new_coef = coef_cleared | int(bits, 2)
     return new_coef
 
 def extract_bits_from_quant_coeff(coef, num_bits=2):
     """
-    Estrae i 'num_bits' LSB da un coefficiente quantizzato (intero) e restituisce la stringa corrispondente.
+    Extracts the 'num_bits' LSBs from a quantized coefficient (integer) and returns the corresponding string.
     """
     coef_int = int(coef)
     mask = (1 << num_bits) - 1
@@ -69,23 +69,23 @@ def extract_bits_from_quant_coeff(coef, num_bits=2):
     return format(bits_val, f'0{num_bits}b')
 
 ###############################################################################
-# 4) Funzione di embedding in dominio DCT
+# 4) DCT domain embedding function
 ###############################################################################
 def embed_secret_dct(cover_path, secret_path, stego_path, block_size, quant_matrix, target_coeff, bits_per_block):
     """
-    - Immagine cover: 512x512 in scala di grigi.
-    - Immagine segreta: viene ridimensionata a 32x32 (1024 pixel → 8192 bit).
-    - Dividiamo il cover in blocchi 8x8 (4096 blocchi) e embeddiamo in ogni blocco 'bits_per_block' bit,
-      inserendoli nel coefficiente quantizzato in posizione target (ad es. (3,3)).
+    - Cover image: 512x512 in grayscale.
+    - Secret image: is resized to 32x32 (1024 pixels → 8192 bits).
+    - We divide the cover into 8x8 blocks (4096 blocks) and embed 'bits_per_block' bits in each block,
+      inserting them into the quantized coefficient at position target (e.g., (3,3)).
     """
-    # Carica cover in scala di grigi
+    # Load cover in grayscale
     cover_img = Image.open(cover_path).convert('L')
     cover_np = np.array(cover_img, dtype=np.float32)
     H, W = cover_np.shape
 
     num_blocks_vert = H // block_size
     num_blocks_horiz = W // block_size
-    total_blocks = num_blocks_vert * num_blocks_horiz  # 4096 blocchi
+    total_blocks = num_blocks_vert * num_blocks_horiz  # 4096 blocks
 
     def resizer():
         res = int(math.sqrt((total_blocks * bits_per_block) / block_size))
@@ -95,57 +95,57 @@ def embed_secret_dct(cover_path, secret_path, stego_path, block_size, quant_matr
         secret_np = np.array(secret_resized, dtype=np.uint8)
         return secret_np, res
     
-    # # Prepara l'immagine segreta: ridimensiona a 32x32
+    # # Prepare the secret image: resize to 32x32
     # secret_img = Image.open(secret_path).convert('L')
     # secret_resized = secret_img.resize((32,32))
     # secret_np = np.array(secret_resized, dtype=np.uint8)
-    # Converti l'immagine segreta in una stringa di bit (8 bit per pixel → 1024*8 = 8192 bit)
+    # Convert the secret image to a bit string (8 bits per pixel → 1024*8 = 8192 bits)
     secret_np, secret_size = resizer()
     secret_bits = ''.join(format(p, '08b') for p in secret_np.flatten())
     if len(secret_bits) != total_blocks * bits_per_block:
-        raise ValueError(f"La lunghezza della bitstream segreta ({len(secret_bits)} bit) non corrisponde alla capacità ({total_blocks * bits_per_block} bit).")
+        raise ValueError(f"The length of the secret bitstream ({len(secret_bits)} bits) does not match the capacity ({total_blocks * bits_per_block} bits).")
 
     bit_index = 0
     stego_np = np.zeros_like(cover_np)
 
-    # Per ogni blocco
+    # For each block
     for i in range(num_blocks_vert):
         for j in range(num_blocks_horiz):
             r = i * block_size
             c = j * block_size
             block = cover_np[r:r+block_size, c:c+block_size]
 
-            # 1) DCT del blocco
+            # 1) DCT of the block
             dct_block = dct2(block)
-            # 2) Quantizzazione: dividi per la matrice e arrotonda
+            # 2) Quantization: divide by the matrix and round
             quant_block = np.round(dct_block / quant_matrix).astype(np.int32)
-            # 3) Embedding: prendi i 'bits_per_block' bit dalla secret_bits
+            # 3) Embedding: take the 'bits_per_block' bits from secret_bits
             bits_to_embed = secret_bits[bit_index:bit_index + bits_per_block]
             bit_index += bits_per_block
             rr, cc = target_coeff
             coef = quant_block[rr, cc]
             new_coef = embed_bits_in_quant_coeff(coef, bits_to_embed, num_bits=bits_per_block)
             quant_block[rr, cc] = new_coef
-            # 4) Dequantizzazione
+            # 4) Dequantization
             new_dct_block = quant_block * quant_matrix
-            # 5) IDCT per ricostruire il blocco
+            # 5) IDCT to reconstruct the block
             stego_block = idct2(new_dct_block)
             stego_np[r:r+block_size, c:c+block_size] = stego_block
 
-    # Clip e conversione in 8-bit
+    # Clip and convert to 8-bit
     stego_np = np.clip(np.round(stego_np), 0, 255).astype(np.uint8)
     stego_img = Image.fromarray(stego_np, mode='L')
     stego_img.save(stego_path)
-    print(f"Immagine stego salvata in: {stego_path}")
+    print(f"Stego image saved to: {stego_path}")
     return cover_np.astype(np.uint8), secret_np, stego_np, [secret_size, secret_size]
 
 ###############################################################################
-# 5) Funzione di estrazione in dominio DCT
+# 5) DCT domain extraction function
 ###############################################################################
 def extract_secret_dct(stego_path, block_size, quant_matrix, target_coeff, bits_per_block, secret_size):
     """
-    Estrae i bit da ogni blocco (dalla stessa posizione target) e ricostruisce l'immagine segreta.
-    secret_size è (altezza, larghezza) in pixel; in questo esempio 32x32 (1024 pixel → 8192 bit).
+    Extracts bits from each block (from the same target position) and reconstructs the secret image.
+    secret_size is (height, width) in pixels; in this example 32x32 (1024 pixels → 8192 bits).
     """
     stego_img = Image.open(stego_path).convert('L')
     stego_np = np.array(stego_img, dtype=np.float32)
@@ -168,7 +168,7 @@ def extract_secret_dct(stego_path, block_size, quant_matrix, target_coeff, bits_
             bits = extract_bits_from_quant_coeff(coef, num_bits=bits_per_block)
             extracted_bits += bits
 
-    # Dovrebbero essere esattamente secret_size[0]*secret_size[1]*8 bit
+    # Should be exactly secret_size[0]*secret_size[1]*8 bits
     needed_bits = secret_size[0] * secret_size[1] * 8
     extracted_bits = extracted_bits[:needed_bits]
 
@@ -181,7 +181,7 @@ def extract_secret_dct(stego_path, block_size, quant_matrix, target_coeff, bits_
     return secret_array, secret_img
 
 ###############################################################################
-# 6) Funzioni per il calcolo di MSE e PSNR
+# 6) Functions for MSE and PSNR calculation
 ###############################################################################
 def compute_mse(imageA, imageB):
     return np.mean((imageA.astype("float") - imageB.astype("float")) ** 2)
@@ -209,11 +209,11 @@ def compute_ssim(img1, img2, window_size=11, sigma=1.5):
     return np.mean(ssim_map)
 
 def _gaussian_filter(img, sigma, window_size):
-    from scipy.ndimage import uniform_filter
-    return uniform_filter(img, size=window_size)
+    from scipy.ndimage import gaussian_filter
+    return gaussian_filter(img, sigma=sigma, truncate=((window_size-1)/2)/sigma)
 
 ###############################################################################
-# 7) Esempio di utilizzo
+# 7) Example usage
 ###############################################################################
 def main(cover_image_path, secret_image_path):
     stego_image_path = 'stego_dct.png'
@@ -263,13 +263,13 @@ def main(cover_image_path, secret_image_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Uso: python DCT_JPEG_like.py original_image secret_image")
+        print("Usage: python DCT_JPEG_like.py original_image secret_image")
         sys.exit(1)
     cover_image_path = sys.argv[1]
     secret_image_path = sys.argv[2]
-    print("Ricevuto:")
+    print("Received:")
     print(" - image:", cover_image_path)
     print(" - timageext :", secret_image_path)
     main(cover_image_path, secret_image_path)
 
-#funziona bene con le potenze del 2
+#works well with powers of 2
