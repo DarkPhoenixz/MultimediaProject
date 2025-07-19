@@ -32,10 +32,12 @@
 | Feature      | Support |
 |--------------|:-------:|
 | GUI          |   ✅    |
-||
+| Feature      | Support |
+|--------------|:-------:|
 | Text Watermarking | ✅ |
 | Image Watermarking | ✅ |
-||
+| Feature      | Support |
+|--------------|:-------:|
 | DCT          |   ✅    |
 | DFT          |   ✅    |
 | DWT          |   ✅    |
