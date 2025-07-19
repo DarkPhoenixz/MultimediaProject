@@ -38,15 +38,18 @@ Hai mai voluto nascondere un'informazione in un'immagine o proteggere i tuoi con
 
 ## ✨ Funzionalità
 
-| Funzionalità            | Stato |
-|-------------------------|:-----:|
-| Interfaccia GUI         | ✅     |
-| Steganografia (testo/img) | ✅   |
-| Watermarking            | ✅     |
-| DCT / DFT / DWT         | ✅     |
-| LSB / DSSS              | ✅     |
-| Esecuzione da terminale | ✅     |
-| Testing automatico      | ✅     |
+| Funzionalità / Feature      | Stato / Support |
+|----------------------------|:--------------:|
+| Interfaccia GUI / GUI      |      ✅        |
+| Steganografia (testo/img) / Text & Image Watermarking | ✅ |
+| Watermarking               |      ✅        |
+| DCT                        |      ✅        |
+| DFT                        |      ✅        |
+| DWT                        |      ✅        |
+| LSB                        |      ✅        |
+| DSSS                       |      ✅        |
+| Esecuzione da terminale    |      ✅        |
+| Testing automatico         |      ✅        |
 
 ---
 
