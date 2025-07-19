@@ -31,14 +31,17 @@
 
 | Feature      | Support |
 |--------------|:-------:|
+| GUI          |   ✅    |
+||
+| Text Watermarking | ✅ |
+| Image Watermarking | ✅ |
+||
 | DCT          |   ✅    |
 | DFT          |   ✅    |
 | DWT          |   ✅    |
 | LSB          |   ✅    |
 | DSSS         |   ✅    |
-| Text Watermarking | ✅ |
-| Image Watermarking | ✅ |
-| GUI          |   ✅    |
+
 
 ---
 

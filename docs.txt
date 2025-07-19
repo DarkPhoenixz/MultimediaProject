@@ -1,0 +1,77 @@
+ora ti fornisco tutti i valori di mse e psnr degli algoritmi 
+fai una valutazione considerando che è stata inserita sempre una immagine tranne in DCT-text
+wm sta per watermark, nello specifico sono mse e psnr rispettivi del wm inserito ed estratto
+
+dct-text 
+mse = 6.01
+psnr = 40.34
+
+dct-full 
+mse = 0.6
+psnr = 50.45
+WM
+mse = 1535.9
+psnr = 6.27
+
+dct-Jpeglike 
+mse = 25.6
+psnr = 50.45
+WM
+mse = 0
+psnr = inf
+
+dct-lowfreq 
+mse = 1.14
+psnr = 34
+WM
+mse = 6810
+psnr = 9.8
+
+dct-singlequant 
+mse = 10.9
+psnr = 37.53
+WM
+mse = 0
+psnr = inf
+
+DFT
+mse = 6.4
+psnr = 40.07
+WM
+mse = 1.62e-01
+psnr = 7.9
+
+DSSS
+mse = 0.5
+psnr = 51.15
+WM
+mse = 2.41e-01
+psnr = 6.18
+
+LSB
+mse = 3.23
+psnr = 43.04
+WM
+mse = 0
+psnr = inf
+
+DWT-multilevel
+mse = 0.7
+psnr = 49.69
+WM
+mse = 4893.3
+psnr = 11.2
+
+DWT-singlelevel
+mse = 0.98
+psnr = 48.22
+WM
+mse = 6711.48
+psnr = 9.83
+
+DWT-otsu
+mse = 25.07
+psnr = 34.14
+WM
+mse = 2126.36
+psnr = 14.85
