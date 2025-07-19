@@ -4,4 +4,4 @@ boot.py
 __pycache__/
 venv/
 testsNotWorking/
-.docs.txt
+docs.txt
