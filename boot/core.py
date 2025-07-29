@@ -15,6 +15,7 @@ def get_required_modules(req_file="requirements.txt"):
     # Cerca requirements.txt nella directory dove si trova questo file (boot/core.py)
     project_root = Path(__file__).parent
     path = project_root / req_file
+    print(path)
     print(f"Looking for requirements.txt at: {path.resolve()}")
     if not path.exists():
         sys.exit(f"File '{req_file}' not found.")
@@ -51,7 +52,10 @@ def install_missing_libraries(req_file="requirements.txt"):
     if missing:
         lg.log("Installing missing libraries: " + ", ".join(missing), "📦")
         try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", req_file])
+            project_root = Path(__file__).parent
+            path = project_root / req_file
+            print(path)
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", path])
             lg.log("Installation completed.", "✅")
         except subprocess.CalledProcessError:
             sys.exit("An error occurred while installing the required packages.")
